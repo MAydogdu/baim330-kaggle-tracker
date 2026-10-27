@@ -1,5 +1,6 @@
 /**
  * BAIM 330 Kaggle Tracker - Frontend Application Logic
+ * Supports both Live Python Backend and Static GitHub Pages deployment.
  */
 
 // Application State
@@ -9,14 +10,16 @@ let allTeams = [];
 let historyChartInstance = null;
 let miniChartInstance = null;
 let showInstructorLine = true;
+let isStaticMode = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+let staticCache = null;
 
 // Color Palette for teams
 const TEAM_COLORS = [
-  { border: '#0d9488', bg: 'rgba(13, 148, 136, 0.15)' },  // Teal (Group 1)
-  { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },  // Amber (Group 2)
-  { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },  // Purple (Group 3)
-  { border: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)' },  // Pink (Group 4)
-  { border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)' },   // Cyan (Group 5)
+  { border: '#0d9488', bg: 'rgba(13, 148, 136, 0.15)' },  // Teal
+  { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },  // Amber
+  { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },  // Purple
+  { border: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)' },  // Pink
+  { border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)' },   // Cyan
 ];
 const INSTRUCTOR_COLOR = { border: '#1e3a8a', bg: 'rgba(30, 58, 138, 0.15)' }; // Navy Blue
 
@@ -29,6 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshData();
   loadAdminSettings();
   loadTeamsList();
+
+  // If on GitHub Pages, adjust indicator
+  if (isStaticMode) {
+    const hint = document.getElementById('credentials-source-hint');
+    if (hint) {
+      hint.textContent = 'Hosted on GitHub Pages (Public Classroom View)';
+    }
+  }
 
   // Polling: Auto-refresh leaderboard every 60 seconds
   setInterval(() => {
@@ -68,7 +79,6 @@ function showToast(message, type = 'info') {
 function switchTab(tabName) {
   currentTab = tabName;
 
-  // Sections
   const tabs = ['leaderboard', 'history', 'admin'];
   tabs.forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -93,11 +103,10 @@ function switchTab(tabName) {
     activeBtn.classList.remove('text-slate-300');
   }
 
-  // Refresh tab-specific data
   if (tabName === 'history') {
     loadHistory();
   } else if (tabName === 'admin') {
-    if (!adminToken) {
+    if (!adminToken && !isStaticMode) {
       openModal('modal-login');
     } else {
       loadTeamsList();
@@ -116,13 +125,65 @@ function refreshData() {
   loadHistory();
 }
 
+// Fetch helper that falls back to static JSON on GitHub Pages
+async function fetchStaticOrApi(endpoint) {
+  if (!isStaticMode) {
+    try {
+      const res = await fetch(endpoint);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // Backend not running, switch to static mode
+      isStaticMode = true;
+    }
+  }
+
+  // Load from static data/leaderboard.json
+  if (!staticCache) {
+    try {
+      const res = await fetch('data/leaderboard.json?v=' + Date.now());
+      if (res.ok) {
+        staticCache = await res.json();
+      }
+    } catch (err) {
+      console.warn('Could not load static JSON:', err);
+    }
+  }
+
+  if (staticCache) {
+    if (endpoint === '/api/leaderboard') {
+      return {
+        competition_id: staticCache.competition_id,
+        last_sync: staticCache.last_sync,
+        total_teams: staticCache.total_teams,
+        winner: staticCache.winner,
+        standings: staticCache.standings
+      };
+    } else if (endpoint === '/api/history') {
+      return staticCache.history || { series: [], snapshots: [] };
+    } else if (endpoint === '/api/teams') {
+      return { teams: staticCache.teams || [] };
+    } else if (endpoint === '/api/admin/settings') {
+      return {
+        competition_id: staticCache.competition_id,
+        kaggle_configured: true,
+        kaggle_username: 'Instructor',
+        credentials_source: 'GitHub Repository'
+      };
+    }
+  }
+
+  return null;
+}
+
 // -------------------------------------------------------------
 // LEADERBOARD & WINNER SPOTLIGHT
 // -------------------------------------------------------------
 async function loadLeaderboard(showToastNotification = false) {
   try {
-    const res = await fetch('/api/leaderboard');
-    const data = await res.parseJsonSafe ? await res.parseJsonSafe() : await res.json();
+    const data = await fetchStaticOrApi('/api/leaderboard');
+    if (!data) return;
     
     // Update last sync time
     const syncTimeEl = document.getElementById('last-sync-time');
@@ -158,16 +219,16 @@ function renderWinnerAndBenchmark(data) {
     winnerNameEl.textContent = winner.name;
     winnerMembersEl.textContent = winner.members ? `Members: ${winner.members}` : `Kaggle: ${winner.kaggle_name}`;
     winnerScoreEl.textContent = Number(winner.best_score).toFixed(5);
-    winnerRankEl.textContent = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : 'Unranked';
+    winnerRankEl.textContent = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : 'Recorded';
     winnerSubmissionsEl.textContent = winner.submission_count || 1;
     winnerUpdateEl.textContent = `Last update recorded: ${winner.last_updated || 'Today'}`;
   } else {
-    winnerNameEl.textContent = 'Competition Initializing...';
+    winnerNameEl.textContent = 'Competition Active';
     winnerMembersEl.textContent = 'Awaiting initial submissions from student groups';
     winnerScoreEl.textContent = '--';
     winnerRankEl.textContent = '--';
     winnerSubmissionsEl.textContent = '0';
-    winnerUpdateEl.textContent = 'No submissions recorded yet';
+    winnerUpdateEl.textContent = 'Syncing submissions';
   }
 
   // 2. Benchmark Card
@@ -179,7 +240,7 @@ function renderWinnerAndBenchmark(data) {
 
   if (benchmark && benchmark.best_score !== null) {
     benchNameEl.textContent = benchmark.name;
-    benchDescEl.textContent = benchmark.members || 'Instructor benchmark model';
+    benchDescEl.textContent = benchmark.members || `Instructor model (${benchmark.kaggle_name})`;
     benchScoreEl.textContent = Number(benchmark.best_score).toFixed(5);
     benchRankEl.textContent = benchmark.kaggle_rank ? `#${benchmark.kaggle_rank.toLocaleString()}` : 'Active';
 
@@ -207,7 +268,7 @@ function renderLeaderboardTable(standings) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="text-center py-10 text-slate-400">
-          No teams currently configured. Use the Admin Panel to add groups.
+          No teams currently configured.
         </td>
       </tr>
     `;
@@ -300,8 +361,8 @@ function renderLeaderboardTable(standings) {
 // -------------------------------------------------------------
 async function loadHistory() {
   try {
-    const res = await fetch('/api/history');
-    const data = await res.json();
+    const data = await fetchStaticOrApi('/api/history');
+    if (!data) return;
 
     renderHistoryChart(data);
     renderMiniChart(data);
@@ -323,8 +384,7 @@ function renderHistoryChart(data) {
   const datasets = [];
   let colorIdx = 0;
 
-  data.series.forEach(item => {
-    // Filter instructor line if toggled off
+  (data.series || []).forEach(item => {
     if (item.is_instructor && !showInstructorLine) return;
 
     const color = item.is_instructor ? INSTRUCTOR_COLOR : TEAM_COLORS[colorIdx % TEAM_COLORS.length];
@@ -381,7 +441,7 @@ function renderHistoryChart(data) {
               const raw = context.raw;
               let label = `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE`;
               if (raw.kaggle_rank) {
-                label += ` (Global Rank: #${raw.kaggle_rank.toLocaleString()})`;
+                label += ` (Rank: #${raw.kaggle_rank.toLocaleString()})`;
               }
               return label;
             },
@@ -424,7 +484,7 @@ function renderMiniChart(data) {
   const datasets = [];
   let colorIdx = 0;
 
-  data.series.forEach(item => {
+  (data.series || []).forEach(item => {
     const color = item.is_instructor ? INSTRUCTOR_COLOR : TEAM_COLORS[colorIdx % TEAM_COLORS.length];
     if (!item.is_instructor) colorIdx++;
 
@@ -513,8 +573,8 @@ function renderHistoryTable(snapshots) {
         <td class="py-3 px-4 text-center font-mono text-xs">${s.kaggle_rank ? `#${s.kaggle_rank.toLocaleString()}` : '&mdash;'}</td>
         <td class="py-3 px-4 text-xs text-slate-600">${escapeHtml(s.notes || '&mdash;')}</td>
         <td class="py-3 px-4 text-center">
-          <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded ${s.source.includes('manual') ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">
-            ${s.source.split(' ')[0]}
+          <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded ${s.source && s.source.includes('manual') ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">
+            ${s.source ? s.source.split(' ')[0] : 'Kaggle'}
           </span>
         </td>
         <td class="py-3 px-4 text-center admin-only-col ${isAdmin ? '' : 'hidden'}">
@@ -552,7 +612,6 @@ function updateAuthUI() {
 
 function handleAdminBtnClick() {
   if (adminToken) {
-    // Logout
     adminToken = null;
     localStorage.removeItem('baim330_admin_token');
     updateAuthUI();
@@ -568,6 +627,20 @@ function handleAdminBtnClick() {
 async function handleAdminLogin(e) {
   e.preventDefault();
   const password = document.getElementById('login-password').value;
+
+  if (isStaticMode) {
+    // If in static GitHub Pages mode, simple client check for demo/management
+    if (password === 'baim330admin') {
+      adminToken = 'gh_pages_admin_token';
+      localStorage.setItem('baim330_admin_token', adminToken);
+      closeModal('modal-login');
+      document.getElementById('login-password').value = '';
+      updateAuthUI();
+      showToast('Admin access granted on GitHub Pages.', 'success');
+      switchTab('admin');
+      return;
+    }
+  }
 
   try {
     const res = await fetch('/api/admin/login', {
@@ -597,6 +670,11 @@ async function handleAdminLogin(e) {
 async function triggerKaggleUpdate() {
   if (!adminToken) {
     openModal('modal-login');
+    return;
+  }
+
+  if (isStaticMode) {
+    showToast('On GitHub Pages, click "Update Scores" from your local machine or trigger GitHub Actions.', 'info');
     return;
   }
 
@@ -660,11 +738,9 @@ async function triggerKaggleUpdate() {
 // Teams Management
 async function loadTeamsList() {
   try {
-    const res = await fetch('/api/teams');
-    const data = await res.json();
-    allTeams = data.teams || [];
+    const data = await fetchStaticOrApi('/api/teams');
+    allTeams = data ? data.teams || [] : [];
 
-    // Populate admin table
     const tbody = document.getElementById('admin-teams-tbody');
     const snapSelect = document.getElementById('snap-team-id');
 
@@ -840,8 +916,8 @@ async function handleDeleteSnapshot(snapshotId) {
 // Settings & CSV Upload
 async function loadAdminSettings() {
   try {
-    const res = await fetch('/api/admin/settings');
-    const data = await res.json();
+    const data = await fetchStaticOrApi('/api/admin/settings');
+    if (!data) return;
 
     const userInp = document.getElementById('setting-kaggle-user');
     const pill = document.getElementById('kaggle-status-pill');
@@ -862,7 +938,7 @@ async function loadAdminSettings() {
     }
 
     if (hint) {
-      hint.textContent = data.credentials_source !== 'missing' ? `Loaded via: ${data.credentials_source}` : '';
+      hint.textContent = data.credentials_source ? `Loaded via: ${data.credentials_source}` : '';
     }
   } catch (err) {
     console.error('Error loading settings:', err);
@@ -942,7 +1018,7 @@ function handleCSVUpload(input) {
 
 async function handleSeedDemo() {
   if (!adminToken) return openModal('modal-login');
-  if (!confirm('This will seed realistic past milestone score history for the 3 groups and benchmark so you can view the progression chart. Proceed?')) {
+  if (!confirm('This will seed realistic milestone score history for the groups and benchmark. Proceed?')) {
     return;
   }
 

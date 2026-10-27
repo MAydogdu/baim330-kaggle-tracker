@@ -155,6 +155,14 @@ class RequestHandler(BaseHTTPRequestHandler):
             result = sync_scores(comp_id)
             if not result.get("success"):
                 return self.send_json(result, status_code=400)
+            
+            # Export data for static GitHub Pages view
+            try:
+                import export_data
+                export_data.export_to_json()
+            except Exception as e:
+                print("Export error:", e)
+
             return self.send_json(result)
 
         # Add Team
