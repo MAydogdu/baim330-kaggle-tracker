@@ -111,11 +111,22 @@ def parse_csv_leaderboard_content(csv_text):
                 except ValueError:
                     continue
 
+        # Determine submission count from Kaggle
+        sub_count = None
+        for key in ["submissioncount", "submission count", "entries", "submissions", "submission_count"]:
+            if key in row and row[key] != "":
+                try:
+                    sub_count = int(float(row[key]))
+                    break
+                except ValueError:
+                    continue
+
         if team_name and score_val is not None:
             entries.append({
                 "team_name": team_name,
                 "score": score_val,
-                "rank": rank_val
+                "rank": rank_val,
+                "submission_count": sub_count
             })
             
     return entries
@@ -259,7 +270,8 @@ def process_leaderboard_entries(entries, source="kaggle_api"):
                 kaggle_rank=matched_entry.get("rank"),
                 recorded_at=now_str,
                 notes=f"Synced from Kaggle Leaderboard (Team: {matched_entry['team_name']})",
-                source=source
+                source=source,
+                submission_count=matched_entry.get("submission_count")
             )
             updated_teams.append({
                 "team_id": team["id"],

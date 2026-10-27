@@ -277,11 +277,18 @@ function renderWinnerAndBenchmark(data) {
   const winnerUpdateEl = document.getElementById('winner-last-update');
 
   if (winner && winner.best_score !== null) {
-    if (winnerNameEl) winnerNameEl.textContent = winner.name;
+    if (winnerNameEl) {
+      winnerNameEl.innerHTML = `
+        <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/leaderboard?search=${encodeURIComponent(winner.kaggle_name)}" target="_blank" rel="noopener noreferrer" class="hover:underline inline-flex items-center gap-2 group" title="Search ${escapeHtml(winner.kaggle_name)} on Kaggle Leaderboard">
+          <span>${escapeHtml(winner.name)}</span>
+          <i data-lucide="external-link" class="w-5 h-5 text-slate-800 opacity-70 group-hover:opacity-100"></i>
+        </a>
+      `;
+    }
     if (winnerMembersEl) winnerMembersEl.textContent = winner.members ? `Members: ${winner.members}` : `Kaggle: ${winner.kaggle_name}`;
     if (winnerScoreEl) winnerScoreEl.textContent = Number(winner.best_score).toFixed(5);
-    if (winnerRankEl) winnerRankEl.textContent = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : 'Recorded';
-    if (winnerSubmissionsEl) winnerSubmissionsEl.textContent = winner.submission_count || 1;
+    if (winnerRankEl) winnerRankEl.textContent = winner.kaggle_rank ? `${winner.kaggle_rank.toLocaleString()}` : 'Recorded';
+    if (winnerSubmissionsEl) winnerSubmissionsEl.textContent = winner.submission_count !== undefined && winner.submission_count !== null ? winner.submission_count : 1;
     if (winnerUpdateEl) winnerUpdateEl.textContent = `Last update: ${winner.last_updated || 'Today'}`;
   } else {
     if (winnerNameEl) winnerNameEl.textContent = 'Competition Active';
@@ -323,7 +330,7 @@ function renderLeaderboardTable(standings) {
     } else if (team.class_rank === 3) {
       rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black badge-bronze">🥉 3</span>`;
     } else if (team.class_rank) {
-      rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold bg-slate-200 text-slate-700">#${team.class_rank}</span>`;
+      rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold bg-slate-200 text-slate-700">${team.class_rank}</span>`;
     } else {
       rankBadge = `<span class="text-xs text-slate-400 font-medium">--</span>`;
     }
@@ -353,7 +360,7 @@ function renderLeaderboardTable(standings) {
       : `<span class="text-slate-400 font-mono">Pending</span>`;
 
     const kaggleRankDisplay = team.kaggle_rank 
-      ? `<span class="font-mono font-semibold text-slate-700">#${team.kaggle_rank.toLocaleString()}</span>`
+      ? `<span class="font-mono font-semibold text-slate-700">${team.kaggle_rank.toLocaleString()}</span>`
       : `<span class="text-slate-400 font-mono">&mdash;</span>`;
 
     html += `
@@ -548,7 +555,7 @@ function renderHistoryTable(snapshots) {
           ${s.is_instructor ? '<span class="ml-1 text-[10px] bg-blue-100 text-blue-800 px-1 rounded font-bold">Benchmark</span>' : ''}
         </td>
         <td class="py-3 px-4 text-right font-mono font-bold text-slate-900">${Number(s.score).toFixed(5)}</td>
-        <td class="py-3 px-4 text-center font-mono text-xs">${s.kaggle_rank ? `#${s.kaggle_rank.toLocaleString()}` : '&mdash;'}</td>
+        <td class="py-3 px-4 text-center font-mono text-xs">${s.kaggle_rank ? `${s.kaggle_rank.toLocaleString()}` : '&mdash;'}</td>
         <td class="py-3 px-4 text-xs text-slate-600">${escapeHtml(s.notes || '&mdash;')}</td>
         <td class="py-3 px-4 text-center">
           <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded ${s.source && s.source.includes('manual') ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}">

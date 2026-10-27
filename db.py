@@ -41,9 +41,19 @@ def init_db():
             recorded_at TEXT NOT NULL,
             notes TEXT DEFAULT '',
             source TEXT DEFAULT 'kaggle_api',
+            submission_count INTEGER DEFAULT 1,
             FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
         )
     """)
+
+    # Ensure submission_count column exists in snapshots table for existing DBs
+    cursor.execute("PRAGMA table_info(snapshots)")
+    cols = [r["name"] for r in cursor.fetchall()]
+    if "submission_count" not in cols:
+        try:
+            cursor.execute("ALTER TABLE snapshots ADD COLUMN submission_count INTEGER DEFAULT 1")
+        except Exception:
+            pass
 
     # App settings (Kaggle credentials, admin password hash, competition id)
     cursor.execute("""
@@ -157,15 +167,15 @@ def delete_team(team_id):
     conn.commit()
     conn.close()
 
-def record_snapshot(team_id, score, kaggle_rank=None, recorded_at=None, notes="", source="kaggle_api"):
+def record_snapshot(team_id, score, kaggle_rank=None, recorded_at=None, notes="", source="kaggle_api", submission_count=None):
     if not recorded_at:
         recorded_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO snapshots (team_id, score, kaggle_rank, recorded_at, notes, source)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (team_id, float(score), kaggle_rank, recorded_at, notes, source))
+        INSERT INTO snapshots (team_id, score, kaggle_rank, recorded_at, notes, source, submission_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (team_id, float(score), kaggle_rank, recorded_at, notes, source, submission_count))
     snapshot_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -195,7 +205,7 @@ def get_leaderboard_data():
     for team in teams:
         # Get latest score snapshot
         cursor.execute("""
-            SELECT score, kaggle_rank, recorded_at, notes, source
+            SELECT score, kaggle_rank, recorded_at, notes, source, submission_count
             FROM snapshots
             WHERE team_id = ?
             ORDER BY recorded_at DESC, id DESC
@@ -205,11 +215,21 @@ def get_leaderboard_data():
 
         # Get best (minimum) score for this team (since lower RMSE is better)
         cursor.execute("""
-            SELECT MIN(score) as best_score, COUNT(*) as submission_count
+            SELECT MIN(score) as best_score, MAX(submission_count) as max_sub_count, COUNT(*) as snapshot_count
             FROM snapshots
             WHERE team_id = ?
         """, (team["id"],))
         stats = cursor.fetchone()
+
+        # Determine real submission count
+        sub_count = 0
+        if latest and latest["score"] is not None:
+            if stats and stats["max_sub_count"] is not None and stats["max_sub_count"] > 0:
+                sub_count = stats["max_sub_count"]
+            elif latest["submission_count"] is not None and latest["submission_count"] > 0:
+                sub_count = latest["submission_count"]
+            else:
+                sub_count = 1
 
         # Get previous score to show change/trend
         cursor.execute("""
@@ -242,7 +262,7 @@ def get_leaderboard_data():
             "best_score": stats["best_score"] if stats and stats["best_score"] is not None else None,
             "kaggle_rank": latest["kaggle_rank"] if latest else None,
             "last_updated": latest["recorded_at"] if latest else None,
-            "submission_count": stats["submission_count"] if stats else 0,
+            "submission_count": sub_count,
             "delta": delta,
             "trend": trend,
             "notes": latest["notes"] if latest else ""
