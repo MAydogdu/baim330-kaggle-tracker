@@ -311,7 +311,9 @@ function renderLeaderboardTable(standings) {
   standings.forEach(team => {
     // Rank Badge
     let rankBadge = '';
-    if (team.class_rank === 1) {
+    if (team.is_instructor) {
+      rankBadge = `<span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600" title="Unranked Instructor Submission">&mdash;</span>`;
+    } else if (team.class_rank === 1) {
       rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black badge-gold">🥇 1</span>`;
     } else if (team.class_rank === 2) {
       rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black badge-silver">🥈 2</span>`;
@@ -352,11 +354,12 @@ function renderLeaderboardTable(standings) {
       : `<span class="text-slate-400 font-mono">&mdash;</span>`;
 
     html += `
-      <tr class="transition-colors hover:bg-slate-50">
+      <tr class="transition-colors hover:bg-slate-50 ${team.is_instructor ? 'bg-slate-50/60' : ''}">
         <td class="py-4 px-4 text-center">${rankBadge}</td>
         <td class="py-4 px-4">
           <div class="font-bold text-slate-900 flex items-center space-x-2">
             <span>${escapeHtml(team.name)}</span>
+            ${team.is_instructor ? '<span class="text-[10px] bg-slate-200 text-slate-700 font-semibold px-1.5 py-0.5 rounded">Instructor (Unranked)</span>' : ''}
           </div>
           ${team.members ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(team.members)}</div>` : ''}
         </td>
