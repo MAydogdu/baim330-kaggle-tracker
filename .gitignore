@@ -1,0 +1,17 @@
+# Kaggle credentials & secrets
+kaggle.json
+*kaggle*.json
+.env
+
+# SQLite Database
+*.db
+*.db-journal
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/

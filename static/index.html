@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BAIM 330: Kaggle Leaderboard & Score Tracker</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#0d9488',
+              600: '#0f766e',
+              700: '#115e59',
+              900: '#134e4a',
+            },
+            wneu: {
+              blue: '#002B49',
+              gold: '#C59B27',
+              navy: '#001A2C'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Header & Navigation -->
+  <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-wneu-navy text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-900 shadow-md">
+            <i data-lucide="trophy" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs uppercase tracking-wider font-bold bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full">BAIM 330</span>
+              <span class="text-xs text-slate-300 font-medium">Applied Data Mining</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
+              Kaggle Competition Tracker
+              <span class="text-xs font-normal text-slate-400 hidden md:inline-block border-l border-slate-600 pl-2">
+                House Prices: Advanced Regression Techniques
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs & Admin CTA -->
+        <div class="flex items-center space-x-3">
+          <nav class="hidden md:flex space-x-1 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
+            <button id="nav-tab-leaderboard" onclick="switchTab('leaderboard')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 bg-amber-500 text-slate-950 shadow">
+              <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+              <span>Leaderboard</span>
+            </button>
+            <button id="nav-tab-history" onclick="switchTab('history')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 text-slate-300 hover:text-white">
+              <i data-lucide="line-chart" class="w-4 h-4"></i>
+              <span>Score History</span>
+            </button>
+            <button id="nav-tab-admin" onclick="switchTab('admin')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 text-slate-300 hover:text-white">
+              <i data-lucide="shield" class="w-4 h-4"></i>
+              <span>Admin Panel</span>
+            </button>
+          </nav>
+
+          <button id="admin-auth-btn" onclick="handleAdminBtnClick()" class="flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-700/80 hover:bg-slate-700 border border-slate-600 transition shadow">
+            <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+            <span id="admin-auth-text">Admin Login</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden border-t border-slate-700/60 bg-slate-900/95 px-4 py-2 flex justify-around">
+      <button onclick="switchTab('leaderboard')" class="mobile-tab-btn flex flex-col items-center py-1 text-amber-400 text-xs font-semibold">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i>
+        <span>Leaderboard</span>
+      </button>
+      <button onclick="switchTab('history')" class="mobile-tab-btn flex flex-col items-center py-1 text-slate-400 text-xs font-semibold">
+        <i data-lucide="line-chart" class="w-5 h-5 mb-0.5"></i>
+        <span>History</span>
+      </button>
+      <button onclick="switchTab('admin')" class="mobile-tab-btn flex flex-col items-center py-1 text-slate-400 text-xs font-semibold">
+        <i data-lucide="shield" class="w-5 h-5 mb-0.5"></i>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Competition Info Bar -->
+  <div class="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-teal-500/10 border-b border-amber-200/50 py-3 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+      <div class="flex items-center space-x-2 text-slate-700">
+        <i data-lucide="info" class="w-4 h-4 text-amber-600"></i>
+        <span><strong>Metric:</strong> Root-Mean-Squared-Error (RMSE) between log predictions & observed sale price.</span>
+        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded border border-emerald-300">
+          Lower Score is Better! 🏆
+        </span>
+      </div>
+      <div class="flex items-center space-x-4 text-slate-600">
+        <div id="last-sync-badge" class="flex items-center space-x-1.5">
+          <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+          <span>Last sync: <span id="last-sync-time" class="font-medium text-slate-800">Checking...</span></span>
+        </div>
+        <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/leaderboard" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 font-medium inline-flex items-center space-x-1 hover:underline">
+          <span>Kaggle Leaderboard</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- TAB 1: LEADERBOARD & STANDINGS (MAIN SCREEN) -->
+    <section id="tab-leaderboard" class="space-y-8 animate-fadeIn">
+
+      <!-- Winner & Benchmark Hero Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- WINNER SPOTLIGHT CARD (Spans 2 columns) -->
+        <div id="winner-card" class="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-500 text-slate-950 rounded-2xl p-6 sm:p-8 shadow-xl border border-amber-300 flex flex-col justify-between">
+          <div class="absolute -right-10 -bottom-10 opacity-15 pointer-events-none">
+            <i data-lucide="award" class="w-64 h-64 text-slate-950"></i>
+          </div>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center space-x-2 bg-slate-950 text-amber-400 text-xs uppercase tracking-wider font-extrabold px-3 py-1 rounded-full shadow">
+                <i data-lucide="crown" class="w-4 h-4"></i>
+                <span>Currently Leading BAIM 330</span>
+              </span>
+              <span class="text-xs font-bold text-slate-900 bg-white/40 px-3 py-1 rounded-full">
+                #1 Ranked Student Team
+              </span>
+            </div>
+
+            <h2 id="winner-team-name" class="text-3xl sm:text-4xl font-black tracking-tight text-slate-950 mb-1">
+              Loading Leading Group...
+            </h2>
+            <p id="winner-members" class="text-slate-800 font-medium text-sm sm:text-base mb-6">
+              Class leaderboard is being calculated
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-950/20">
+              <div>
+                <span class="text-xs uppercase tracking-wider text-slate-800 font-semibold block">Best RMSE Score</span>
+                <span id="winner-score" class="text-2xl sm:text-3xl font-black text-slate-950 font-mono">--</span>
+              </div>
+              <div>
+                <span class="text-xs uppercase tracking-wider text-slate-800 font-semibold block">Kaggle Global Rank</span>
+                <span id="winner-kaggle-rank" class="text-2xl sm:text-3xl font-black text-slate-950 font-mono">--</span>
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <span class="text-xs uppercase tracking-wider text-slate-800 font-semibold block">Total Submissions</span>
+                <span id="winner-submissions" class="text-2xl sm:text-3xl font-black text-slate-950 font-mono">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative z-10 mt-6 pt-4 border-t border-slate-950/10 flex items-center justify-between text-xs text-slate-900 font-medium">
+            <span id="winner-last-update">Last submission update: --</span>
+            <span class="flex items-center space-x-1">
+              <span>Goal: Beat the Benchmark</span>
+              <i data-lucide="target" class="w-3.5 h-3.5"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- BENCHMARK CARD (Instructor) -->
+        <div id="benchmark-card" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-700 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center space-x-1.5 bg-blue-500/20 text-blue-300 text-xs uppercase tracking-wider font-bold px-3 py-1 rounded-full border border-blue-500/40">
+                <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+                <span>Instructor Benchmark</span>
+              </span>
+              <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-400"></i>
+            </div>
+
+            <h3 id="benchmark-name" class="text-xl font-bold text-white mb-1">Prof. Aydogdu</h3>
+            <p id="benchmark-desc" class="text-slate-400 text-xs mb-5">Instructor reference submission to beat</p>
+
+            <div class="space-y-4">
+              <div class="bg-slate-800/90 rounded-xl p-4 border border-slate-700">
+                <span class="text-xs text-slate-400 block mb-1">Target Score to Beat (RMSE)</span>
+                <div class="flex items-baseline space-x-2">
+                  <span id="benchmark-score" class="text-3xl font-extrabold text-blue-400 font-mono">--</span>
+                  <span class="text-xs text-slate-400">log RMSE</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-300 px-1">
+                <span>Benchmark Kaggle Rank:</span>
+                <span id="benchmark-rank" class="font-bold text-white font-mono">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-700/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Model: Stacked Ensemble / Tuned</span>
+            <span id="benchmark-beaten-status" class="font-bold text-amber-400">Not yet beaten</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Class Leaderboard Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/60">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="list-ordered" class="w-5 h-5 text-amber-600"></i>
+              <span>Class Leaderboard Standings</span>
+            </h3>
+            <p class="text-xs text-slate-500">Live rankings based on best RMSE scores submitted to Kaggle</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="refreshData()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              <span>Refresh Standings</span>
+            </button>
+            <button onclick="switchTab('history')" class="px-3.5 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition flex items-center space-x-1.5">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+              <span>View Trajectory</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-100/70 text-xs uppercase tracking-wider text-slate-600 font-bold">
+                <th class="py-3.5 px-4 text-center w-16">Rank</th>
+                <th class="py-3.5 px-4">Group Name & Members</th>
+                <th class="py-3.5 px-4">Kaggle Handle</th>
+                <th class="py-3.5 px-4 text-right">Best Score (RMSE)</th>
+                <th class="py-3.5 px-4 text-center">Trend</th>
+                <th class="py-3.5 px-4 text-center">Kaggle Rank</th>
+                <th class="py-3.5 px-4 text-center">Submissions</th>
+                <th class="py-3.5 px-4 text-right">Last Recorded</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody" class="divide-y divide-slate-100 text-sm">
+              <!-- Dynamically populated -->
+              <tr>
+                <td colspan="8" class="text-center py-10 text-slate-400">Loading standings...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Mini Preview Chart -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-teal-600"></i>
+              <span>Competition Trajectory Overview</span>
+            </h3>
+            <p class="text-xs text-slate-500">RMSE progression across project lifespan (Downward is Better)</p>
+          </div>
+          <button onclick="switchTab('history')" class="text-xs font-semibold text-sky-600 hover:text-sky-800 flex items-center space-x-1">
+            <span>Expand Full History & Table</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div class="h-64 w-full relative">
+          <canvas id="miniChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: TIME SERIES HISTORY (DETAILED PROGRESSION) -->
+    <section id="tab-history" class="space-y-8 hidden animate-fadeIn">
+      
+      <!-- Chart Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+              Time Series Analysis
+            </span>
+            <h2 class="text-2xl font-bold text-slate-900 mt-2">Team Score Progression Over Time</h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+              Tracking how each student group improves their models across the semester.
+            </p>
+          </div>
+
+          <!-- Chart Controls -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="toggle-instructor-line" onclick="toggleInstructorLine()" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition flex items-center space-x-1">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+              <span id="toggle-instructor-text">Hide Benchmark</span>
+            </button>
+            <button onclick="resetChartZoom()" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition flex items-center space-x-1">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset View</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Chart Canvas -->
+        <div class="h-96 w-full relative">
+          <canvas id="historyChart"></canvas>
+        </div>
+
+        <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between text-xs text-slate-600">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
+            <span>Points on the chart represent recorded Kaggle submissions. Hover over any point to inspect details.</span>
+          </div>
+          <span class="font-medium text-slate-700">Y-Axis: Root Mean Squared Error (Lower = Better Performance)</span>
+        </div>
+      </div>
+
+      <!-- Historical Submissions Log Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="history" class="w-5 h-5 text-indigo-600"></i>
+              <span>Complete Submissions Log</span>
+            </h3>
+            <p class="text-xs text-slate-500">All recorded score snapshots ordered chronologically</p>
+          </div>
+          <span id="total-snapshots-badge" class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200">
+            0 Submissions Logged
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-100/70 text-xs uppercase tracking-wider text-slate-600 font-bold">
+                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-4">Team</th>
+                <th class="py-3 px-4 text-right">Score (RMSE)</th>
+                <th class="py-3 px-4 text-center">Kaggle Rank</th>
+                <th class="py-3 px-4">Notes / Model Description</th>
+                <th class="py-3 px-4 text-center">Source</th>
+                <th class="py-3 px-4 text-center admin-only-col hidden">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody" class="divide-y divide-slate-100 text-sm">
+              <tr>
+                <td colspan="7" class="text-center py-8 text-slate-400">Loading history logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: ADMINISTRATIVE PANEL (INSTRUCTOR ONLY) -->
+    <section id="tab-admin" class="space-y-8 hidden animate-fadeIn">
+
+      <!-- Admin Status & Master Update Bar -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-700">
+        <div class="flex flex-wrap items-center justify-between gap-6">
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Instructor Authenticated</span>
+              </span>
+              <span class="text-xs text-slate-400">BAIM 330 Control Center</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Administrative Operations</h2>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-xl">
+              Fetch real-time Kaggle scores, track group progression over the project, and manage class teams.
+            </p>
+          </div>
+
+          <!-- PRIMARY ACTION: UPDATE BUTTON -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button id="admin-update-scores-btn" onclick="triggerKaggleUpdate()" class="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black rounded-xl shadow-lg transition flex items-center justify-center space-x-2 transform active:scale-95 text-base">
+              <i data-lucide="refresh-cw" id="update-spinner-icon" class="w-5 h-5"></i>
+              <span>Update Current Scores Now</span>
+            </button>
+            <button onclick="openModal('modal-add-snapshot')" class="px-4 py-3.5 bg-slate-700/80 hover:bg-slate-700 text-white font-semibold rounded-xl border border-slate-600 transition flex items-center justify-center space-x-2 text-sm">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span>Manual Score Entry</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sync result announcement container -->
+        <div id="sync-result-box" class="hidden mt-6 p-4 rounded-xl text-sm border"></div>
+      </div>
+
+      <!-- Manage Teams Section -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/60">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-amber-600"></i>
+              <span>Tracked Groups & Teams</span>
+            </h3>
+            <p class="text-xs text-slate-500">Enter and edit student group names and their corresponding Kaggle handles</p>
+          </div>
+          <button onclick="openModal('modal-add-team')" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>Add New Group</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-100/70 text-xs uppercase tracking-wider text-slate-600 font-bold">
+                <th class="py-3 px-4">Group Name</th>
+                <th class="py-3 px-4">Kaggle Handle</th>
+                <th class="py-3 px-4">Members</th>
+                <th class="py-3 px-4 text-center">Type</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-teams-tbody" class="divide-y divide-slate-100 text-sm">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Settings & Integration Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Kaggle API Credentials Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">K</div>
+              <h3 class="font-bold text-slate-900">Kaggle API Configuration</h3>
+            </div>
+            <span id="kaggle-status-pill" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              Checking...
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Configure your Kaggle API key to automate leaderboard synchronization. You can generate a token from your 
+            <a href="https://www.kaggle.com/settings" target="_blank" class="text-sky-600 underline">Kaggle Account Settings</a>.
+          </p>
+
+          <form id="kaggle-settings-form" onsubmit="handleSaveKaggleSettings(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Kaggle Username</label>
+              <input type="text" id="setting-kaggle-user" placeholder="e.g. your_kaggle_username" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Kaggle API Key</label>
+              <input type="password" id="setting-kaggle-key" placeholder="Enter key to update (leave blank to keep)" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div class="pt-2 flex items-center justify-between">
+              <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition shadow">
+                Save Kaggle Credentials
+              </button>
+              <span id="credentials-source-hint" class="text-xs text-slate-400"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Leaderboard CSV Upload & Admin Utilities Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-2 mb-2">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-600"></i>
+              <h3 class="font-bold text-slate-900">Direct CSV Leaderboard Upload</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">
+              Downloaded the official leaderboard CSV from Kaggle? Upload it here to immediately sync all team scores without API configuration.
+            </p>
+
+            <div class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 hover:bg-amber-50/20" onclick="document.getElementById('csv-file-input').click()">
+              <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="handleCSVUpload(this)">
+              <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400 mx-auto mb-1"></i>
+              <span class="text-xs font-semibold text-slate-700 block">Click to select leaderboard CSV file</span>
+              <span class="text-[11px] text-slate-400">Matches teams automatically</span>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="handleSeedDemo()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Seed Demo Progression History</span>
+            </button>
+            <button onclick="openModal('modal-change-password')" class="text-xs font-semibold text-slate-600 hover:text-slate-800 flex items-center space-x-1">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>Change Admin Password</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- Modal: Admin Login -->
+  <div id="modal-login" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-lg">Instructor Login</h3>
+            <p class="text-xs text-slate-500">Access BAIM 330 Administrative Panel</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-login')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Admin Password</label>
+          <input type="password" id="login-password" placeholder="Enter administrative password" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+          <span class="text-[11px] text-slate-400 mt-1 block">Default password: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-mono">baim330admin</code></span>
+        </div>
+        <div class="flex space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modal-login')" class="w-1/2 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm shadow">
+            Unlock Panel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Team -->
+  <div id="modal-add-team" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modal-team-title" class="font-bold text-slate-900 text-lg">Add New Group to Follow</h3>
+        <button onclick="closeModal('modal-add-team')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="team-form" onsubmit="handleSaveTeam(event)" class="space-y-4">
+        <input type="hidden" id="team-form-id" value="">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Group Display Name *</label>
+          <input type="text" id="team-form-name" placeholder="e.g. Group 4 (Alpha Miners)" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Kaggle Team or Username *</label>
+          <input type="text" id="team-form-kaggle" placeholder="Exact handle as it appears on Kaggle" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+          <span class="text-[11px] text-slate-400">Used to match their score when fetching the leaderboard</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Student Members (Optional)</label>
+          <input type="text" id="team-form-members" placeholder="e.g. Alice Smith, Bob Jones" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div class="flex items-center space-x-2 pt-1">
+          <input type="checkbox" id="team-form-is-instructor" class="rounded text-amber-500 focus:ring-amber-400 h-4 w-4">
+          <label for="team-form-is-instructor" class="text-xs font-medium text-slate-700">Mark as Instructor Benchmark (excluded from student ranking)</label>
+        </div>
+        <div class="flex space-x-2 pt-3">
+          <button type="button" onclick="closeModal('modal-add-team')" class="w-1/2 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm shadow">
+            Save Group
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Manual Score Snapshot Entry -->
+  <div id="modal-add-snapshot" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-slate-900 text-lg">Record Score Snapshot</h3>
+        <button onclick="closeModal('modal-add-snapshot')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="snapshot-form" onsubmit="handleSaveSnapshot(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Select Group *</label>
+          <select id="snap-team-id" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Score (RMSE) *</label>
+          <input type="number" step="0.00001" id="snap-score" placeholder="e.g. 0.12450" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+          <span class="text-[11px] text-slate-400">Standard Kaggle House Prices score format</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Kaggle Global Rank (Optional)</label>
+          <input type="number" id="snap-rank" placeholder="e.g. 1150" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Date & Time</label>
+          <input type="datetime-local" id="snap-datetime" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+          <span class="text-[11px] text-slate-400">Leave blank to use current time</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Notes / Description (Optional)</label>
+          <input type="text" id="snap-notes" placeholder="e.g. Milestone 2 submission with XGBoost" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div class="flex space-x-2 pt-3">
+          <button type="button" onclick="closeModal('modal-add-snapshot')" class="w-1/2 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm shadow">
+            Save Snapshot
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Change Password -->
+  <div id="modal-change-password" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-slate-900 text-lg">Change Admin Password</h3>
+        <button onclick="closeModal('modal-change-password')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="password-form" onsubmit="handleChangePassword(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">New Password *</label>
+          <input type="password" id="new-password" placeholder="Enter new administrative password" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div class="flex space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modal-change-password')" class="w-1/2 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm shadow">
+            Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 py-6 mt-12 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-medium text-slate-300">BAIM 330: Applied Data Mining &bull; Western New England University</p>
+        <p class="text-slate-500 mt-0.5">Instructor: Prof. Murat Aydogdu &bull; Kaggle House Prices Competition Tracker</p>
+      </div>
+      <div class="flex items-center space-x-4 text-slate-500">
+        <span>SQLite + Python 3 Zero-Dep Architecture</span>
+        <span>&bull;</span>
+        <button onclick="switchTab('admin')" class="text-slate-400 hover:text-white underline">Instructor Control</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
