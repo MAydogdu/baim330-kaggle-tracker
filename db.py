@@ -248,31 +248,31 @@ def get_leaderboard_data():
             "notes": latest["notes"] if latest else ""
         })
 
-    # Sort standings:
-    # Teams with valid scores first (sorted ascending by best_score because lower RMSE is better)
-    with_score = [t for t in standings if t["best_score"] is not None]
-    without_score = [t for t in standings if t["best_score"] is None]
-    with_score.sort(key=lambda t: t["best_score"])
+    # Separate student groups and instructor reference:
+    student_with_score = [t for t in standings if not t["is_instructor"] and t["best_score"] is not None]
+    student_without_score = [t for t in standings if not t["is_instructor"] and t["best_score"] is None]
+    instructor_teams = [t for t in standings if t["is_instructor"]]
 
-    # Assign class ranks:
-    # Student teams get ranks 1, 2, 3...
-    # Instructor is benchmark
+    # Sort student teams by score ascending (lower RMSE = better)
+    student_with_score.sort(key=lambda t: t["best_score"])
+
+    # Assign student ranks 1, 2, 3...
     student_rank = 1
     winner = None
-    for item in with_score:
-        if not item["is_instructor"]:
-            item["class_rank"] = student_rank
-            if winner is None:
-                winner = item
-            student_rank += 1
-        else:
-            item["class_rank"] = None # Benchmark doesn't take student podium spot
+    for item in student_with_score:
+        item["class_rank"] = student_rank
+        if winner is None:
+            winner = item
+        student_rank += 1
 
-
-    for item in without_score:
+    for item in student_without_score:
         item["class_rank"] = None
 
-    all_ranked = with_score + without_score
+    for item in instructor_teams:
+        item["class_rank"] = None
+
+    # Instructor submissions always show at the bottom to make it clear they are not competing
+    all_ranked = student_with_score + student_without_score + instructor_teams
     conn.close()
 
     return {

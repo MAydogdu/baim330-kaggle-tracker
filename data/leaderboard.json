@@ -20,22 +20,6 @@
   },
   "standings": [
     {
-      "team_id": 12,
-      "name": "BAIM330murt",
-      "kaggle_name": "BAIM330murt",
-      "members": "Murat Aydogdu",
-      "is_instructor": true,
-      "latest_score": 0.1271,
-      "best_score": 0.1271,
-      "kaggle_rank": null,
-      "last_updated": "2026-10-27 16:25:54",
-      "submission_count": 4,
-      "delta": -0.27903,
-      "trend": "improved",
-      "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
-      "class_rank": null
-    },
-    {
       "team_id": 6,
       "name": "brights",
       "kaggle_name": "brights",
@@ -81,6 +65,22 @@
       "delta": null,
       "trend": "unchanged",
       "notes": "",
+      "class_rank": null
+    },
+    {
+      "team_id": 12,
+      "name": "BAIM330murt",
+      "kaggle_name": "BAIM330murt",
+      "members": "Murat Aydogdu",
+      "is_instructor": true,
+      "latest_score": 0.1271,
+      "best_score": 0.1271,
+      "kaggle_rank": null,
+      "last_updated": "2026-10-27 16:25:54",
+      "submission_count": 4,
+      "delta": -0.27903,
+      "trend": "improved",
+      "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
       "class_rank": null
     }
   ],
