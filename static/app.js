@@ -8,8 +8,7 @@ let currentTab = 'leaderboard';
 let adminToken = localStorage.getItem('baim330_admin_token') || null;
 let allTeams = [];
 let historyChartInstance = null;
-let miniChartInstance = null;
-let showInstructorLine = true;
+let heroChartInstance = null;
 let isStaticMode = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
 let staticCache = null;
 
@@ -222,10 +221,8 @@ async function loadLeaderboard(showToastNotification = false) {
 
 function renderWinnerAndBenchmark(data) {
   const winner = data.winner;
-  const standings = data.standings || [];
-  const benchmark = standings.find(t => t.is_instructor);
 
-  // 1. Winner Card
+  // Winner Spotlight Card
   const winnerNameEl = document.getElementById('winner-team-name');
   const winnerMembersEl = document.getElementById('winner-members');
   const winnerScoreEl = document.getElementById('winner-score');
@@ -234,45 +231,19 @@ function renderWinnerAndBenchmark(data) {
   const winnerUpdateEl = document.getElementById('winner-last-update');
 
   if (winner && winner.best_score !== null) {
-    winnerNameEl.textContent = winner.name;
-    winnerMembersEl.textContent = winner.members ? `Members: ${winner.members}` : `Kaggle: ${winner.kaggle_name}`;
-    winnerScoreEl.textContent = Number(winner.best_score).toFixed(5);
-    winnerRankEl.textContent = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : 'Recorded';
-    winnerSubmissionsEl.textContent = winner.submission_count || 1;
-    winnerUpdateEl.textContent = `Last update recorded: ${winner.last_updated || 'Today'}`;
+    if (winnerNameEl) winnerNameEl.textContent = winner.name;
+    if (winnerMembersEl) winnerMembersEl.textContent = winner.members ? `Members: ${winner.members}` : `Kaggle: ${winner.kaggle_name}`;
+    if (winnerScoreEl) winnerScoreEl.textContent = Number(winner.best_score).toFixed(5);
+    if (winnerRankEl) winnerRankEl.textContent = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : 'Recorded';
+    if (winnerSubmissionsEl) winnerSubmissionsEl.textContent = winner.submission_count || 1;
+    if (winnerUpdateEl) winnerUpdateEl.textContent = `Last update: ${winner.last_updated || 'Today'}`;
   } else {
-    winnerNameEl.textContent = 'Competition Active';
-    winnerMembersEl.textContent = 'Awaiting initial submissions from student groups';
-    winnerScoreEl.textContent = '--';
-    winnerRankEl.textContent = '--';
-    winnerSubmissionsEl.textContent = '0';
-    winnerUpdateEl.textContent = 'Syncing submissions';
-  }
-
-  // 2. Benchmark Card
-  const benchNameEl = document.getElementById('benchmark-name');
-  const benchDescEl = document.getElementById('benchmark-desc');
-  const benchScoreEl = document.getElementById('benchmark-score');
-  const benchRankEl = document.getElementById('benchmark-rank');
-  const benchBeatenEl = document.getElementById('benchmark-beaten-status');
-
-  if (benchmark && benchmark.best_score !== null) {
-    benchNameEl.textContent = benchmark.name;
-    benchDescEl.textContent = benchmark.members || `Instructor model (${benchmark.kaggle_name})`;
-    benchScoreEl.textContent = Number(benchmark.best_score).toFixed(5);
-    benchRankEl.textContent = benchmark.kaggle_rank ? `#${benchmark.kaggle_rank.toLocaleString()}` : 'Active';
-
-    // Check if any student group beat the benchmark (lower RMSE than instructor)
-    if (winner && winner.best_score && winner.best_score < benchmark.best_score) {
-      benchBeatenEl.innerHTML = `<span class="text-emerald-400 font-bold flex items-center gap-1">🏆 BEATEN by ${winner.name}!</span>`;
-    } else {
-      benchBeatenEl.textContent = 'Not yet beaten by students';
-      benchBeatenEl.className = 'font-bold text-amber-400';
-    }
-  } else {
-    benchScoreEl.textContent = '--';
-    benchRankEl.textContent = '--';
-    benchBeatenEl.textContent = 'Benchmark not set';
+    if (winnerNameEl) winnerNameEl.textContent = 'Competition Active';
+    if (winnerMembersEl) winnerMembersEl.textContent = 'Awaiting initial submissions from student groups';
+    if (winnerScoreEl) winnerScoreEl.textContent = '--';
+    if (winnerRankEl) winnerRankEl.textContent = '--';
+    if (winnerSubmissionsEl) winnerSubmissionsEl.textContent = '0';
+    if (winnerUpdateEl) winnerUpdateEl.textContent = 'Syncing submissions';
   }
 
   if (window.lucide) lucide.createIcons();
@@ -297,9 +268,7 @@ function renderLeaderboardTable(standings) {
   standings.forEach(team => {
     // Rank Badge
     let rankBadge = '';
-    if (team.is_instructor) {
-      rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold badge-instructor" title="Instructor Benchmark">BENCH</span>`;
-    } else if (team.class_rank === 1) {
+    if (team.class_rank === 1) {
       rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black badge-gold">🥇 1</span>`;
     } else if (team.class_rank === 2) {
       rankBadge = `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black badge-silver">🥈 2</span>`;
@@ -340,14 +309,14 @@ function renderLeaderboardTable(standings) {
       : `<span class="text-slate-400 font-mono">&mdash;</span>`;
 
     html += `
-      <tr class="transition-colors ${team.is_instructor ? 'bg-blue-50/40' : ''}">
+      <tr class="transition-colors hover:bg-slate-50">
         <td class="py-4 px-4 text-center">${rankBadge}</td>
         <td class="py-4 px-4">
           <div class="font-bold text-slate-900 flex items-center space-x-2">
             <span>${escapeHtml(team.name)}</span>
-            ${team.is_instructor ? '<span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded">Instructor</span>' : ''}
           </div>
           ${team.members ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(team.members)}</div>` : ''}
+        </td>
         </td>
         <td class="py-4 px-4">
           <a href="https://www.kaggle.com/${encodeURIComponent(team.kaggle_name)}" target="_blank" class="inline-flex items-center space-x-1 text-sky-600 hover:text-sky-800 font-mono text-xs hover:underline">
@@ -382,31 +351,32 @@ async function loadHistory() {
     const data = await fetchStaticOrApi('/api/history');
     if (!data) return;
 
+    renderHeroChart(data);
     renderHistoryChart(data);
-    renderMiniChart(data);
     renderHistoryTable(data.snapshots);
   } catch (err) {
     console.error('Error loading history:', err);
   }
 }
 
-function renderHistoryChart(data) {
-  const canvas = document.getElementById('historyChart');
+function renderHeroChart(data) {
+  const canvas = document.getElementById('heroTimeSeriesChart');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  if (historyChartInstance) {
-    historyChartInstance.destroy();
+  if (heroChartInstance) {
+    heroChartInstance.destroy();
   }
 
   const datasets = [];
   let colorIdx = 0;
 
-  (data.series || []).forEach(item => {
-    if (item.is_instructor && !showInstructorLine) return;
+  // Filter series that have recorded points
+  const activeSeries = (data.series || []).filter(s => s.points && s.points.length > 0);
 
-    const color = item.is_instructor ? INSTRUCTOR_COLOR : TEAM_COLORS[colorIdx % TEAM_COLORS.length];
-    if (!item.is_instructor) colorIdx++;
+  activeSeries.forEach(item => {
+    const color = TEAM_COLORS[colorIdx % TEAM_COLORS.length];
+    colorIdx++;
 
     datasets.push({
       label: item.team_name,
@@ -417,18 +387,16 @@ function renderHistoryChart(data) {
         notes: p.notes
       })),
       borderColor: color.border,
-      backgroundColor: color.bg,
-      borderWidth: item.is_instructor ? 2.5 : 3,
-      borderDash: item.is_instructor ? [6, 4] : [],
-      pointRadius: 6,
-      pointHoverRadius: 8,
-      pointBackgroundColor: color.border,
+      backgroundColor: color.border,
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointHoverRadius: 7,
       tension: 0.25,
       fill: false
     });
   });
 
-  historyChartInstance = new Chart(ctx, {
+  heroChartInstance = new Chart(ctx, {
     type: 'line',
     data: { datasets },
     options: {
@@ -445,27 +413,19 @@ function renderHistoryChart(data) {
           labels: {
             usePointStyle: true,
             boxWidth: 8,
-            font: { size: 12, weight: 'bold' }
+            font: { size: 11, weight: 'bold' }
           }
         },
         tooltip: {
           backgroundColor: '#0f172a',
-          titleFont: { size: 13, weight: 'bold' },
-          bodyFont: { size: 12 },
-          padding: 10,
-          cornerRadius: 8,
+          titleFont: { size: 12, weight: 'bold' },
+          bodyFont: { size: 11 },
+          padding: 8,
+          cornerRadius: 6,
           callbacks: {
             label: function(context) {
               const raw = context.raw;
-              let label = `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE`;
-              if (raw.kaggle_rank) {
-                label += ` (Rank: #${raw.kaggle_rank.toLocaleString()})`;
-              }
-              return label;
-            },
-            afterLabel: function(context) {
-              const notes = context.raw.notes;
-              return notes ? `Note: ${notes}` : '';
+              return `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE`;
             }
           }
         }
@@ -474,67 +434,19 @@ function renderHistoryChart(data) {
         x: {
           type: 'time',
           time: {
-            unit: 'day',
-            displayFormats: { day: 'MMM d' },
+            displayFormats: {
+              minute: 'HH:mm',
+              hour: 'MMM d, HH:mm',
+              day: 'MMM d'
+            },
             tooltipFormat: 'yyyy-MM-dd HH:mm'
           },
           grid: { color: 'rgba(226, 232, 240, 0.6)' },
-          title: { display: true, text: 'Date of Submission', font: { weight: 'bold', size: 11 } }
+          ticks: { font: { size: 10 } }
         },
         y: {
           grid: { color: 'rgba(226, 232, 240, 0.6)' },
-          title: { display: true, text: 'RMSE Score (Lower is Better)', font: { weight: 'bold', size: 11 } }
-        }
-      }
-    }
-  });
-}
-
-function renderMiniChart(data) {
-  const canvas = document.getElementById('miniChart');
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d');
-  if (miniChartInstance) {
-    miniChartInstance.destroy();
-  }
-
-  const datasets = [];
-  let colorIdx = 0;
-
-  (data.series || []).forEach(item => {
-    const color = item.is_instructor ? INSTRUCTOR_COLOR : TEAM_COLORS[colorIdx % TEAM_COLORS.length];
-    if (!item.is_instructor) colorIdx++;
-
-    datasets.push({
-      label: item.team_name,
-      data: item.points.map(p => ({ x: p.x, y: p.y })),
-      borderColor: color.border,
-      borderWidth: 2,
-      borderDash: item.is_instructor ? [4, 4] : [],
-      pointRadius: 3,
-      tension: 0.25,
-      fill: false
-    });
-  });
-
-  miniChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: { datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 6, font: { size: 10 } } }
-      },
-      scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'day', displayFormats: { day: 'MMM d' } },
-          grid: { display: false }
-        },
-        y: {
-          grid: { color: 'rgba(226, 232, 240, 0.4)' },
+          title: { display: true, text: 'RMSE (Lower is Better)', font: { size: 10, weight: 'bold' } },
           ticks: { font: { size: 10 } }
         }
       }
