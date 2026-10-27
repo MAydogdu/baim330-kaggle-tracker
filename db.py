@@ -286,10 +286,12 @@ def get_leaderboard_data():
 def get_history_data():
     """
     Returns time series data for all teams for Chart.js.
+    Shows, for each day, the best score of each team.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # All raw snapshots for chronological table log
     cursor.execute("""
         SELECT s.id, s.team_id, t.name as team_name, t.is_instructor,
                s.score, s.kaggle_rank, s.recorded_at, s.notes, s.source
@@ -299,11 +301,25 @@ def get_history_data():
     """)
     snapshots = [dict(row) for row in cursor.fetchall()]
 
-    cursor.execute("SELECT id, name, is_instructor FROM teams ORDER BY is_instructor ASC, name ASC")
+    cursor.execute("SELECT id, name, is_instructor FROM teams ORDER BY name ASC")
     teams = [dict(row) for row in cursor.fetchall()]
+
+    # Daily best score query: for each team and each day, take the MIN(score)
+    cursor.execute("""
+        SELECT s.team_id, t.name as team_name,
+               DATE(s.recorded_at) as day,
+               MIN(s.score) as best_daily_score,
+               MIN(s.kaggle_rank) as best_rank,
+               COUNT(*) as submissions_count
+        FROM snapshots s
+        JOIN teams t ON s.team_id = t.id
+        GROUP BY s.team_id, DATE(s.recorded_at)
+        ORDER BY day ASC
+    """)
+    daily_records = [dict(row) for row in cursor.fetchall()]
     conn.close()
 
-    # Structure data by team
+    # Structure data by team: one point per day representing the best score that day
     team_series = {}
     for team in teams:
         team_series[team["id"]] = {
@@ -313,18 +329,17 @@ def get_history_data():
             "points": []
         }
 
-    for s in snapshots:
-        tid = s["team_id"]
+    for r in daily_records:
+        tid = r["team_id"]
         if tid in team_series:
             team_series[tid]["points"].append({
-                "x": s["recorded_at"],
-                "y": s["score"],
-                "kaggle_rank": s["kaggle_rank"],
-                "notes": s["notes"],
-                "snapshot_id": s["id"]
+                "x": r["day"], # 'YYYY-MM-DD'
+                "y": r["best_daily_score"], # Best RMSE achieved on that day
+                "kaggle_rank": r["best_rank"],
+                "submissions_count": r["submissions_count"],
+                "notes": f"Best on {r['day']} ({r['submissions_count']} submissions)"
             })
 
-    # Also list of all snapshots for raw table display
     snapshots_desc = list(reversed(snapshots))
 
     return {

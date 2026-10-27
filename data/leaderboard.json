@@ -120,18 +120,11 @@
         "is_instructor": false,
         "points": [
           {
-            "x": "2026-10-27 15:19:11",
+            "x": "2026-10-27",
             "y": 0.40613,
             "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
-            "snapshot_id": 21
-          },
-          {
-            "x": "2026-10-27 15:27:59",
-            "y": 0.40613,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
-            "snapshot_id": 24
+            "submissions_count": 2,
+            "notes": "Best on 2026-10-27 (2 submissions)"
           }
         ]
       },
@@ -141,32 +134,11 @@
         "is_instructor": false,
         "points": [
           {
-            "x": "2026-10-27 15:16:42",
+            "x": "2026-10-27",
             "y": 0.40613,
             "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-            "snapshot_id": 13
-          },
-          {
-            "x": "2026-10-27 15:18:07",
-            "y": 0.40613,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-            "snapshot_id": 16
-          },
-          {
-            "x": "2026-10-27 15:19:11",
-            "y": 0.40613,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-            "snapshot_id": 19
-          },
-          {
-            "x": "2026-10-27 15:27:59",
-            "y": 0.40613,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-            "snapshot_id": 22
+            "submissions_count": 4,
+            "notes": "Best on 2026-10-27 (4 submissions)"
           }
         ]
       },
@@ -176,46 +148,11 @@
         "is_instructor": false,
         "points": [
           {
-            "x": "2026-10-27 15:09:25",
+            "x": "2026-10-27",
             "y": 0.14766,
             "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 10
-          },
-          {
-            "x": "2026-10-27 15:09:48",
-            "y": 0.14766,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 12
-          },
-          {
-            "x": "2026-10-27 15:16:42",
-            "y": 0.14766,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 14
-          },
-          {
-            "x": "2026-10-27 15:18:07",
-            "y": 0.14766,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 17
-          },
-          {
-            "x": "2026-10-27 15:19:11",
-            "y": 0.14766,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 20
-          },
-          {
-            "x": "2026-10-27 15:27:59",
-            "y": 0.14766,
-            "kaggle_rank": null,
-            "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-            "snapshot_id": 23
+            "submissions_count": 6,
+            "notes": "Best on 2026-10-27 (6 submissions)"
           }
         ]
       }

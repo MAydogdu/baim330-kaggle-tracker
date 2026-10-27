@@ -92,6 +92,49 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
+// Public Refresh (available to anyone on the main screen)
+async function triggerPublicRefresh() {
+  const btn = document.getElementById('btn-public-refresh');
+  const icon = document.getElementById('public-refresh-icon');
+  const text = document.getElementById('public-refresh-text');
+
+  if (icon) icon.classList.add('animate-spin-custom');
+  if (text) text.textContent = 'Fetching...';
+  if (btn) btn.disabled = true;
+
+  try {
+    showToast('Fetching latest submissions from Kaggle...', 'info');
+
+    let res = null;
+    try {
+      res = await fetch('/api/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (netErr) {
+      // Might be running in static mode on GitHub Pages
+    }
+
+    if (res && res.ok) {
+      const data = await res.json();
+      showToast(data.message || 'Scores updated successfully from Kaggle!', 'success');
+      refreshData();
+    } else {
+      // On static GitHub Pages, bust cache and refresh view
+      staticCache = null;
+      await refreshData();
+      showToast('Standings refreshed.', 'success');
+    }
+  } catch (err) {
+    showToast('Refresh error: ' + err.message, 'warning');
+  } finally {
+    if (icon) icon.classList.remove('animate-spin-custom');
+    if (text) text.textContent = 'Fetch Kaggle';
+    if (btn) btn.disabled = false;
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
 // Tab Switching
 function switchTab(tabName) {
   currentTab = tabName;
@@ -425,7 +468,7 @@ function renderHeroChart(data) {
           callbacks: {
             label: function(context) {
               const raw = context.raw;
-              return `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE`;
+              return `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE (Daily Best)`;
             }
           }
         }
@@ -434,19 +477,19 @@ function renderHeroChart(data) {
         x: {
           type: 'time',
           time: {
+            unit: 'day',
             displayFormats: {
-              minute: 'HH:mm',
-              hour: 'MMM d, HH:mm',
               day: 'MMM d'
             },
-            tooltipFormat: 'yyyy-MM-dd HH:mm'
+            tooltipFormat: 'yyyy-MM-dd'
           },
           grid: { color: 'rgba(226, 232, 240, 0.6)' },
+          title: { display: true, text: 'Date', font: { size: 10, weight: 'bold' } },
           ticks: { font: { size: 10 } }
         },
         y: {
           grid: { color: 'rgba(226, 232, 240, 0.6)' },
-          title: { display: true, text: 'RMSE (Lower is Better)', font: { size: 10, weight: 'bold' } },
+          title: { display: true, text: 'Daily Best RMSE (Lower is Better)', font: { size: 10, weight: 'bold' } },
           ticks: { font: { size: 10 } }
         }
       }

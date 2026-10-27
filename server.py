@@ -121,12 +121,40 @@ class RequestHandler(BaseHTTPRequestHandler):
             authed = is_authorized(self.headers)
             return self.send_json({"authenticated": authed})
 
+        # Public Refresh Endpoint (GET or POST)
+        elif path == "/api/refresh":
+            comp_id = get_setting("competition_id", "house-prices-advanced-regression-techniques")
+            result = sync_scores(comp_id)
+            if result.get("success"):
+                try:
+                    import export_data
+                    export_data.export_to_json()
+                except Exception as e:
+                    print("Export error:", e)
+                return self.send_json(result)
+            else:
+                return self.send_error_json(result.get("error", "Failed to fetch from Kaggle"))
+
         # Static files
         self.serve_static_file(path)
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+
+        # Public Refresh Endpoint (Anyone can request a Kaggle fetch)
+        if path == "/api/refresh":
+            comp_id = get_setting("competition_id", "house-prices-advanced-regression-techniques")
+            result = sync_scores(comp_id)
+            if result.get("success"):
+                try:
+                    import export_data
+                    export_data.export_to_json()
+                except Exception as e:
+                    print("Export error:", e)
+                return self.send_json(result)
+            else:
+                return self.send_error_json(result.get("error", "Failed to fetch from Kaggle"))
 
         # Admin Login
         if path == "/api/admin/login":
