@@ -73,3 +73,233 @@ tbody tr:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   🎮 OBNOXIOUS MODE (OVER-THE-TOP ARCADE RETRO THEME)
+   ========================================================================== */
+
+body.obnoxious-mode {
+  background-color: #0b001a !important;
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 128, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(138, 43, 226, 0.35) 0%, rgba(11, 0, 26, 0.95) 75%) !important;
+  background-size: 36px 36px, 36px 36px, 100% 100% !important;
+  color: #00f0ff !important;
+  font-family: 'Trebuchet MS', 'Impact', system-ui, sans-serif !important;
+  transition: all 0.4s ease;
+}
+
+/* Obnoxious Mode Header */
+body.obnoxious-mode header {
+  background: linear-gradient(90deg, #180033, #3b0066, #001f3f) !important;
+  border-bottom: 3px solid #ff007f !important;
+  box-shadow: 0 0 25px rgba(255, 0, 127, 0.6), 0 0 45px rgba(0, 240, 255, 0.4) !important;
+}
+
+body.obnoxious-mode header h1 {
+  animation: obnoxious-rainbow-text 3s linear infinite;
+}
+
+/* Obnoxious Mode Winner Spotlight Card */
+body.obnoxious-mode #winner-card {
+  background: linear-gradient(135deg, #ff007f 0%, #7b00ff 50%, #00f0ff 100%) !important;
+  border: 3px solid #39ff14 !important;
+  box-shadow: 0 0 30px #ff007f, 0 0 60px #00f0ff, inset 0 0 20px rgba(57, 255, 20, 0.5) !important;
+  animation: obnoxious-card-pulse 2s ease-in-out infinite alternate;
+  color: #ffffff !important;
+}
+
+body.obnoxious-mode #winner-card span.inline-flex {
+  background: #000000 !important;
+  color: #39ff14 !important;
+  border: 2px solid #39ff14 !important;
+  box-shadow: 0 0 12px #39ff14 !important;
+  animation: obnoxious-wobble 1.5s ease-in-out infinite;
+}
+
+/* Flashing Typeface for Current Winner */
+body.obnoxious-mode #winner-team-name,
+body.obnoxious-mode #winner-team-name a {
+  font-size: 2.5rem !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  animation: obnoxious-neon-flash 0.7s ease-in-out infinite alternate !important;
+  display: inline-block;
+}
+
+body.obnoxious-mode #winner-score,
+body.obnoxious-mode #winner-kaggle-rank,
+body.obnoxious-mode #winner-submissions {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff, 0 0 30px #ff007f !important;
+  font-weight: 900 !important;
+  animation: obnoxious-glow 1s infinite alternate;
+}
+
+body.obnoxious-mode #winner-members {
+  color: #ffe600 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(255, 230, 0, 0.8) !important;
+}
+
+body.obnoxious-mode #btn-public-refresh {
+  background: #39ff14 !important;
+  color: #0b001a !important;
+  box-shadow: 0 0 20px #39ff14, 0 0 40px #39ff14 !important;
+  font-weight: 900 !important;
+  border: 2px solid #ffffff !important;
+  animation: obnoxious-button-bounce 1.2s infinite;
+}
+
+/* Obnoxious Mode Chart Card */
+body.obnoxious-mode .lg\\:col-span-7 {
+  background: rgba(18, 2, 43, 0.88) !important;
+  border: 2px solid #00f0ff !important;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.45) !important;
+  color: #00f0ff !important;
+}
+
+body.obnoxious-mode .lg\\:col-span-7 h3 {
+  color: #00f0ff !important;
+  text-shadow: 0 0 12px #00f0ff !important;
+}
+
+/* Obnoxious Mode Table Card */
+body.obnoxious-mode .bg-white.rounded-2xl {
+  background: rgba(18, 2, 43, 0.92) !important;
+  border: 2px solid #ff007f !important;
+  box-shadow: 0 0 30px rgba(255, 0, 127, 0.4), inset 0 0 15px rgba(138, 43, 226, 0.3) !important;
+  color: #ffffff !important;
+}
+
+body.obnoxious-mode .bg-white.rounded-2xl table {
+  color: #ffffff !important;
+}
+
+body.obnoxious-mode thead tr {
+  background: linear-gradient(90deg, #3b0066, #180033) !important;
+  color: #39ff14 !important;
+  border-bottom: 2px solid #00f0ff !important;
+}
+
+body.obnoxious-mode thead th {
+  color: #39ff14 !important;
+  text-shadow: 0 0 8px #39ff14 !important;
+}
+
+body.obnoxious-mode tbody tr {
+  border-bottom: 1px solid rgba(138, 43, 226, 0.3) !important;
+  transition: all 0.2s ease;
+}
+
+body.obnoxious-mode tbody tr:hover {
+  background-color: rgba(255, 0, 127, 0.25) !important;
+  box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.5) !important;
+}
+
+body.obnoxious-mode tbody tr td div.font-bold {
+  color: #ffffff !important;
+  text-shadow: 0 0 5px #ffffff, 0 0 10px #00f0ff !important;
+}
+
+body.obnoxious-mode tbody tr:first-child {
+  background: rgba(255, 215, 0, 0.12) !important;
+  animation: obnoxious-row-flash 1.5s infinite alternate;
+}
+
+body.obnoxious-mode tbody td a {
+  color: #00f0ff !important;
+  text-shadow: 0 0 8px #00f0ff !important;
+}
+
+body.obnoxious-mode tbody td a:hover {
+  color: #ff007f !important;
+  text-shadow: 0 0 12px #ff007f !important;
+}
+
+/* Floating Moving Arcade Sprites */
+.obnoxious-floating-sprite {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 2rem;
+  filter: drop-shadow(0 0 12px #ff007f) drop-shadow(0 0 20px #00f0ff);
+  user-select: none;
+  animation: obnoxious-float linear infinite;
+}
+
+/* ==========================================================================
+   🎮 OBNOXIOUS KEYFRAME ANIMATIONS
+   ========================================================================== */
+
+@keyframes obnoxious-neon-flash {
+  0% {
+    color: #00f0ff;
+    text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff, 0 0 35px #ff007f, 0 0 55px #ff007f;
+    transform: scale(1) rotate(-0.5deg);
+  }
+  50% {
+    color: #ff007f;
+    text-shadow: 0 0 15px #ff007f, 0 0 25px #ff007f, 0 0 45px #39ff14, 0 0 65px #39ff14;
+    transform: scale(1.05) rotate(0.8deg);
+  }
+  100% {
+    color: #39ff14;
+    text-shadow: 0 0 12px #39ff14, 0 0 30px #39ff14, 0 0 50px #00f0ff, 0 0 70px #00f0ff;
+    transform: scale(1.02) rotate(-0.8deg);
+  }
+}
+
+@keyframes obnoxious-rainbow-text {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes obnoxious-card-pulse {
+  0% {
+    box-shadow: 0 0 20px #ff007f, 0 0 40px #00f0ff;
+  }
+  100% {
+    box-shadow: 0 0 45px #00f0ff, 0 0 80px #ff007f, 0 0 110px #39ff14;
+  }
+}
+
+@keyframes obnoxious-wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes obnoxious-button-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.03); }
+}
+
+@keyframes obnoxious-row-flash {
+  0% { box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.4); }
+  100% { box-shadow: inset 0 0 25px rgba(255, 0, 127, 0.7); }
+}
+
+@keyframes obnoxious-glow {
+  0% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
+@keyframes obnoxious-float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(35px, -45px) rotate(90deg) scale(1.15);
+  }
+  50% {
+    transform: translate(-25px, -90px) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(40px, -140px) rotate(270deg) scale(1.2);
+  }
+  100% {
+    transform: translate(0, -190px) rotate(360deg) scale(1);
+  }
+}

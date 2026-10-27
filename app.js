@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshData();
   loadAdminSettings();
   loadTeamsList();
+  initObnoxiousMode();
 
   // If on GitHub Pages, adjust indicator
   if (isStaticMode) {
@@ -1081,4 +1082,106 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// -------------------------------------------------------------
+// 🎮 OBNOXIOUS ARCADE MODE (OVER-THE-TOP GAMIFIED THEME)
+// -------------------------------------------------------------
+function playRetroChime(isUp = true) {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const notes = isUp ? [261.63, 329.63, 392.00, 523.25] : [523.25, 392.00, 329.63, 261.63];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = isUp ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + idx * 0.08);
+      osc.stop(ctx.currentTime + idx * 0.08 + 0.14);
+    });
+  } catch (e) {
+    // AudioContext blocked or not supported
+  }
+}
+
+function spawnFloatingArcadeSprites() {
+  removeFloatingArcadeSprites();
+  const container = document.createElement('div');
+  container.id = 'obnoxious-sprites-container';
+  container.style.position = 'fixed';
+  container.style.inset = '0';
+  container.style.pointerEvents = 'none';
+  container.style.zIndex = '9998';
+  container.style.overflow = 'hidden';
+
+  const icons = ['👾', '🚀', '👑', '🏆', '🔥', '💎', '🕹️', '⚡', '🛸', '⭐', '🦄', '🎉', '🌟', '💥', '🥇', '🤖'];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.className = 'obnoxious-floating-sprite';
+    el.textContent = icons[i % icons.length];
+    el.style.left = `${Math.random() * 92}vw`;
+    el.style.top = `${Math.random() * 85 + 5}vh`;
+    const dur = 4 + Math.random() * 6;
+    const delay = Math.random() * 3;
+    el.style.animationDuration = `${dur}s`;
+    el.style.animationDelay = `${delay}s`;
+    el.style.fontSize = `${1.8 + Math.random() * 1.5}rem`;
+    container.appendChild(el);
+  }
+  document.body.appendChild(container);
+}
+
+function removeFloatingArcadeSprites() {
+  const existing = document.getElementById('obnoxious-sprites-container');
+  if (existing) existing.remove();
+}
+
+function updateObnoxiousUI(isActive) {
+  const btn = document.getElementById('btn-obnoxious-mode');
+  const icon = document.getElementById('obnoxious-icon');
+  const text = document.getElementById('obnoxious-text');
+  
+  if (isActive) {
+    document.body.classList.add('obnoxious-mode');
+    if (icon) icon.textContent = '🛑';
+    if (text) text.textContent = 'Normal Mode (My Eyes!)';
+    if (btn) {
+      btn.classList.add('animate-pulse');
+      btn.classList.remove('from-purple-600', 'via-pink-600', 'to-cyan-500');
+      btn.classList.add('from-rose-600', 'via-amber-500', 'to-pink-600');
+    }
+    spawnFloatingArcadeSprites();
+  } else {
+    document.body.classList.remove('obnoxious-mode');
+    if (icon) icon.textContent = '🕹️';
+    if (text) text.textContent = 'Obnoxious Mode';
+    if (btn) {
+      btn.classList.remove('animate-pulse');
+      btn.classList.remove('from-rose-600', 'via-amber-500', 'to-pink-600');
+      btn.classList.add('from-purple-600', 'via-pink-600', 'to-cyan-500');
+    }
+    removeFloatingArcadeSprites();
+  }
+}
+
+function toggleObnoxiousMode() {
+  const isCurrentlyActive = document.body.classList.contains('obnoxious-mode');
+  const nextState = !isCurrentlyActive;
+  localStorage.setItem('baim330_obnoxious', nextState ? '1' : '0');
+  updateObnoxiousUI(nextState);
+  playRetroChime(nextState);
+  showToast(nextState ? '🎮 OBNOXIOUS MODE ACTIVATED! WELCOME TO THE ARCADE!' : 'Standard clean mode restored.', 'info');
+}
+
+function initObnoxiousMode() {
+  const saved = localStorage.getItem('baim330_obnoxious');
+  if (saved === '1') {
+    updateObnoxiousUI(true);
+  }
 }
