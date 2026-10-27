@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) {
     lucide.createIcons();
   }
+  checkAdminVisibility();
   updateAuthUI();
   refreshData();
   loadAdminSettings();
@@ -48,6 +49,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 60000);
 });
+
+// Admin visibility control
+// Hides all admin buttons & tabs on the public GitHub Pages site by default
+function checkAdminVisibility() {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const hasSecretParam = window.location.search.includes('admin') || window.location.hash.includes('admin');
+
+  const adminElements = document.querySelectorAll('.admin-ui-element');
+  if (isLocal || hasSecretParam) {
+    adminElements.forEach(el => el.classList.remove('hidden'));
+  } else {
+    adminElements.forEach(el => el.classList.add('hidden'));
+    if (currentTab === 'admin') {
+      switchTab('leaderboard');
+    }
+  }
+}
 
 // Toast notification helper
 function showToast(message, type = 'info') {
@@ -629,17 +647,10 @@ async function handleAdminLogin(e) {
   const password = document.getElementById('login-password').value;
 
   if (isStaticMode) {
-    // If in static GitHub Pages mode, simple client check for demo/management
-    if (password === 'baim330admin') {
-      adminToken = 'gh_pages_admin_token';
-      localStorage.setItem('baim330_admin_token', adminToken);
-      closeModal('modal-login');
-      document.getElementById('login-password').value = '';
-      updateAuthUI();
-      showToast('Admin access granted on GitHub Pages.', 'success');
-      switchTab('admin');
-      return;
-    }
+    showToast('Admin operations are managed locally on your instructor computer for security.', 'info');
+    closeModal('modal-login');
+    document.getElementById('login-password').value = '';
+    return;
   }
 
   try {
