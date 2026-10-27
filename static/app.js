@@ -58,6 +58,9 @@ function checkAdminVisibility() {
   const adminElements = document.querySelectorAll('.admin-ui-element');
   if (isLocal || hasSecretParam) {
     adminElements.forEach(el => el.classList.remove('hidden'));
+    if (hasSecretParam) {
+      setTimeout(() => switchTab('admin'), 100);
+    }
   } else {
     adminElements.forEach(el => el.classList.add('hidden'));
     if (currentTab === 'admin') {
@@ -605,10 +608,20 @@ async function handleAdminLogin(e) {
   const password = document.getElementById('login-password').value;
 
   if (isStaticMode) {
-    showToast('Admin operations are managed locally on your instructor computer for security.', 'info');
-    closeModal('modal-login');
-    document.getElementById('login-password').value = '';
-    return;
+    if (password === 'baim330admin') {
+      adminToken = 'gh_pages_admin_token';
+      localStorage.setItem('baim330_admin_token', adminToken);
+      closeModal('modal-login');
+      document.getElementById('login-password').value = '';
+      updateAuthUI();
+      showToast('Admin access granted.', 'success');
+      switchTab('admin');
+      loadTeamsList();
+      return;
+    } else {
+      showToast('Incorrect admin password.', 'error');
+      return;
+    }
   }
 
   try {

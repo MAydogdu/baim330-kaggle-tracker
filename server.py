@@ -411,13 +411,13 @@ class RequestHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error(500, f"Error reading file: {str(e)}")
 
-def run_server(port=8000, host="127.0.0.1"):
+def run_server(port=8000, host="0.0.0.0"):
     init_db()
     server_address = (host, port)
     httpd = ThreadedHTTPServer(server_address, RequestHandler)
     print("=" * 65)
     print(f"  🏆 BAIM 330: Applied Data Mining - Kaggle Tracker Server")
-    print(f"  🌐 Running locally at: http://{host}:{port}")
+    print(f"  🌐 Running locally at: http://localhost:{port} (and http://127.0.0.1:{port})")
     print(f"  🔑 Default Admin Password: baim330admin")
     print(f"  📊 Competition: House Prices - Advanced Regression Techniques")
     print("=" * 65)
