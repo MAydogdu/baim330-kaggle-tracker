@@ -2,6 +2,9 @@
 
 A tailored web platform for **BAIM 330: Applied Data Mining** at Western New England University (WNEU) to track student groups competing in Kaggle's **[House Prices - Advanced Regression Techniques](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques)** competition.
 
+🌐 **Live Website URL (GitHub Pages):**  
+👉 **[https://maydogdu.github.io/baim330-kaggle-tracker/](https://maydogdu.github.io/baim330-kaggle-tracker/)**
+
 ---
 
 ## 🌟 Key Features
