@@ -366,9 +366,8 @@ function renderLeaderboardTable(standings) {
           </div>
           ${team.members ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(team.members)}</div>` : ''}
         </td>
-        </td>
         <td class="py-4 px-4">
-          <a href="https://www.kaggle.com/${encodeURIComponent(team.kaggle_name)}" target="_blank" class="inline-flex items-center space-x-1 text-sky-600 hover:text-sky-800 font-mono text-xs hover:underline">
+          <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/leaderboard?search=${encodeURIComponent(team.kaggle_name)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 text-sky-600 hover:text-sky-800 font-mono text-xs hover:underline" title="Search ${escapeHtml(team.kaggle_name)} on Kaggle Leaderboard">
             <span>${escapeHtml(team.kaggle_name)}</span>
             <i data-lucide="external-link" class="w-3 h-3"></i>
           </a>

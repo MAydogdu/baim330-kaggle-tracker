@@ -1,6 +1,6 @@
 {
   "competition_id": "house-prices-advanced-regression-techniques",
-  "last_sync": "2026-10-27 16:25:54",
+  "last_sync": "2026-10-27 16:44:42",
   "total_teams": 4,
   "winner": {
     "team_id": 6,
@@ -10,9 +10,9 @@
     "is_instructor": false,
     "latest_score": 0.14766,
     "best_score": 0.14766,
-    "kaggle_rank": null,
-    "last_updated": "2026-10-27 16:25:54",
-    "submission_count": 8,
+    "kaggle_rank": 3109,
+    "last_updated": "2026-10-27 16:44:42",
+    "submission_count": 9,
     "delta": 0.0,
     "trend": "unchanged",
     "notes": "Synced from Kaggle Leaderboard (Team: brights)",
@@ -27,9 +27,9 @@
       "is_instructor": false,
       "latest_score": 0.14766,
       "best_score": 0.14766,
-      "kaggle_rank": null,
-      "last_updated": "2026-10-27 16:25:54",
-      "submission_count": 8,
+      "kaggle_rank": 3109,
+      "last_updated": "2026-10-27 16:44:42",
+      "submission_count": 9,
       "delta": 0.0,
       "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: brights)",
@@ -43,9 +43,9 @@
       "is_instructor": false,
       "latest_score": 0.40613,
       "best_score": 0.40613,
-      "kaggle_rank": null,
-      "last_updated": "2026-10-27 16:25:54",
-      "submission_count": 6,
+      "kaggle_rank": 4303,
+      "last_updated": "2026-10-27 16:44:42",
+      "submission_count": 7,
       "delta": 0.0,
       "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
@@ -75,11 +75,11 @@
       "is_instructor": true,
       "latest_score": 0.1271,
       "best_score": 0.1271,
-      "kaggle_rank": null,
-      "last_updated": "2026-10-27 16:25:54",
-      "submission_count": 4,
-      "delta": -0.27903,
-      "trend": "improved",
+      "kaggle_rank": 1600,
+      "last_updated": "2026-10-27 16:44:42",
+      "submission_count": 5,
+      "delta": 0.0,
+      "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
       "class_rank": null
     }
@@ -122,9 +122,9 @@
           {
             "x": "2026-10-27",
             "y": 0.1271,
-            "kaggle_rank": null,
-            "submissions_count": 4,
-            "notes": "Best on 2026-10-27 (4 submissions)"
+            "kaggle_rank": 1600,
+            "submissions_count": 5,
+            "notes": "Best on 2026-10-27 (5 submissions)"
           }
         ]
       },
@@ -136,9 +136,9 @@
           {
             "x": "2026-10-27",
             "y": 0.40613,
-            "kaggle_rank": null,
-            "submissions_count": 6,
-            "notes": "Best on 2026-10-27 (6 submissions)"
+            "kaggle_rank": 4303,
+            "submissions_count": 7,
+            "notes": "Best on 2026-10-27 (7 submissions)"
           }
         ]
       },
@@ -150,14 +150,47 @@
           {
             "x": "2026-10-27",
             "y": 0.14766,
-            "kaggle_rank": null,
-            "submissions_count": 8,
-            "notes": "Best on 2026-10-27 (8 submissions)"
+            "kaggle_rank": 3109,
+            "submissions_count": 9,
+            "notes": "Best on 2026-10-27 (9 submissions)"
           }
         ]
       }
     ],
     "snapshots": [
+      {
+        "id": 33,
+        "team_id": 12,
+        "team_name": "BAIM330murt",
+        "is_instructor": 1,
+        "score": 0.1271,
+        "kaggle_rank": 1600,
+        "recorded_at": "2026-10-27 16:44:42",
+        "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 32,
+        "team_id": 6,
+        "team_name": "brights",
+        "is_instructor": 0,
+        "score": 0.14766,
+        "kaggle_rank": 3109,
+        "recorded_at": "2026-10-27 16:44:42",
+        "notes": "Synced from Kaggle Leaderboard (Team: brights)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 31,
+        "team_id": 9,
+        "team_name": "Prediction Pirates",
+        "is_instructor": 0,
+        "score": 0.40613,
+        "kaggle_rank": 4303,
+        "recorded_at": "2026-10-27 16:44:42",
+        "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
+        "source": "kaggle_api (maydogdu)"
+      },
       {
         "id": 30,
         "team_id": 6,

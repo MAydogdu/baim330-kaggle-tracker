@@ -84,9 +84,9 @@ def parse_csv_leaderboard_content(csv_text):
     entries = []
     reader = csv.DictReader(io.StringIO(csv_text))
     
-    # Normalize field names to lowercase
+    # Normalize field names to lowercase and strip UTF-8 BOM / whitespace
     for raw_row in reader:
-        row = {k.strip().lower(): v.strip() for k, v in raw_row.items() if k}
+        row = {k.lstrip('\ufeff').strip().lower(): v.strip() for k, v in raw_row.items() if k}
         
         # Determine team name
         team_name = row.get("teamname") or row.get("team name") or row.get("team") or ""
@@ -106,7 +106,7 @@ def parse_csv_leaderboard_content(csv_text):
         for key in ["rank", "place"]:
             if key in row and row[key] != "":
                 try:
-                    rank_val = int(row[key])
+                    rank_val = int(float(row[key]))
                     break
                 except ValueError:
                     continue
@@ -152,12 +152,12 @@ def fetch_kaggle_leaderboard_api(username, key, competition_id):
                         csv_filename = z.namelist()[0]
                         
                     if csv_filename:
-                        csv_text = z.read(csv_filename).decode("utf-8", errors="replace")
+                        csv_text = z.read(csv_filename).decode("utf-8-sig", errors="replace")
                         return parse_csv_leaderboard_content(csv_text), None
             else:
                 # May be raw CSV or JSON
                 try:
-                    text = content.decode("utf-8", errors="replace")
+                    text = content.decode("utf-8-sig", errors="replace")
                     if text.strip().startswith("{") or text.strip().startswith("["):
                         data = json.loads(text)
                         entries = []
