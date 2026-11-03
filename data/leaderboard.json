@@ -1,39 +1,55 @@
 {
   "competition_id": "house-prices-advanced-regression-techniques",
-  "last_sync": "2026-10-27 16:54:30",
+  "last_sync": "2026-11-03 15:10:37",
   "total_teams": 4,
   "winner": {
-    "team_id": 6,
-    "name": "brights",
-    "kaggle_name": "brights",
-    "members": "Corey and Jeffrie",
+    "team_id": 10,
+    "name": "BAIM Group",
+    "kaggle_name": "BAIM Group",
+    "members": "Jill, Juliany, Kyle",
     "is_instructor": false,
-    "latest_score": 0.14766,
-    "best_score": 0.14766,
-    "kaggle_rank": 3110,
-    "last_updated": "2026-10-27 16:54:30",
-    "submission_count": 3,
-    "delta": 0.0,
+    "latest_score": 0.12493,
+    "best_score": 0.12493,
+    "kaggle_rank": 1407,
+    "last_updated": "2026-11-03 15:10:37",
+    "submission_count": 23,
+    "delta": null,
     "trend": "unchanged",
-    "notes": "Synced from Kaggle Leaderboard (Team: brights)",
+    "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
     "class_rank": 1
   },
   "standings": [
+    {
+      "team_id": 10,
+      "name": "BAIM Group",
+      "kaggle_name": "BAIM Group",
+      "members": "Jill, Juliany, Kyle",
+      "is_instructor": false,
+      "latest_score": 0.12493,
+      "best_score": 0.12493,
+      "kaggle_rank": 1407,
+      "last_updated": "2026-11-03 15:10:37",
+      "submission_count": 23,
+      "delta": null,
+      "trend": "unchanged",
+      "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
+      "class_rank": 1
+    },
     {
       "team_id": 6,
       "name": "brights",
       "kaggle_name": "brights",
       "members": "Corey and Jeffrie",
       "is_instructor": false,
-      "latest_score": 0.14766,
-      "best_score": 0.14766,
-      "kaggle_rank": 3110,
-      "last_updated": "2026-10-27 16:54:30",
-      "submission_count": 3,
-      "delta": 0.0,
-      "trend": "unchanged",
+      "latest_score": 0.14541,
+      "best_score": 0.14541,
+      "kaggle_rank": 3091,
+      "last_updated": "2026-11-03 15:10:37",
+      "submission_count": 9,
+      "delta": -0.00225,
+      "trend": "improved",
       "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-      "class_rank": 1
+      "class_rank": 2
     },
     {
       "team_id": 9,
@@ -43,29 +59,13 @@
       "is_instructor": false,
       "latest_score": 0.40613,
       "best_score": 0.40613,
-      "kaggle_rank": 4304,
-      "last_updated": "2026-10-27 16:54:30",
+      "kaggle_rank": 4475,
+      "last_updated": "2026-11-03 15:10:37",
       "submission_count": 1,
       "delta": 0.0,
       "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-      "class_rank": 2
-    },
-    {
-      "team_id": 10,
-      "name": "BAIM330 Group",
-      "kaggle_name": "BAIM330 Group",
-      "members": "Jill, Juliany, Kyle",
-      "is_instructor": false,
-      "latest_score": null,
-      "best_score": null,
-      "kaggle_rank": null,
-      "last_updated": null,
-      "submission_count": 0,
-      "delta": null,
-      "trend": "unchanged",
-      "notes": "",
-      "class_rank": null
+      "class_rank": 3
     },
     {
       "team_id": 12,
@@ -75,8 +75,8 @@
       "is_instructor": true,
       "latest_score": 0.1271,
       "best_score": 0.1271,
-      "kaggle_rank": 1601,
-      "last_updated": "2026-10-27 16:54:30",
+      "kaggle_rank": 1698,
+      "last_updated": "2026-11-03 15:10:37",
       "submission_count": 2,
       "delta": 0.0,
       "trend": "unchanged",
@@ -88,7 +88,7 @@
     "teams": [
       {
         "id": 10,
-        "name": "BAIM330 Group",
+        "name": "BAIM Group",
         "is_instructor": 0
       },
       {
@@ -110,9 +110,17 @@
     "series": [
       {
         "team_id": 10,
-        "team_name": "BAIM330 Group",
+        "team_name": "BAIM Group",
         "is_instructor": false,
-        "points": []
+        "points": [
+          {
+            "x": "2026-11-03",
+            "y": 0.12493,
+            "kaggle_rank": 1407,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-03 (1 submissions)"
+          }
+        ]
       },
       {
         "team_id": 12,
@@ -125,6 +133,13 @@
             "kaggle_rank": 1600,
             "submissions_count": 6,
             "notes": "Best on 2026-10-27 (6 submissions)"
+          },
+          {
+            "x": "2026-11-03",
+            "y": 0.1271,
+            "kaggle_rank": 1698,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-03 (1 submissions)"
           }
         ]
       },
@@ -139,6 +154,13 @@
             "kaggle_rank": 4303,
             "submissions_count": 8,
             "notes": "Best on 2026-10-27 (8 submissions)"
+          },
+          {
+            "x": "2026-11-03",
+            "y": 0.40613,
+            "kaggle_rank": 4475,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-03 (1 submissions)"
           }
         ]
       },
@@ -153,11 +175,62 @@
             "kaggle_rank": 3109,
             "submissions_count": 10,
             "notes": "Best on 2026-10-27 (10 submissions)"
+          },
+          {
+            "x": "2026-11-03",
+            "y": 0.14541,
+            "kaggle_rank": 3091,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-03 (1 submissions)"
           }
         ]
       }
     ],
     "snapshots": [
+      {
+        "id": 40,
+        "team_id": 12,
+        "team_name": "BAIM330murt",
+        "is_instructor": 1,
+        "score": 0.1271,
+        "kaggle_rank": 1698,
+        "recorded_at": "2026-11-03 15:10:37",
+        "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 39,
+        "team_id": 6,
+        "team_name": "brights",
+        "is_instructor": 0,
+        "score": 0.14541,
+        "kaggle_rank": 3091,
+        "recorded_at": "2026-11-03 15:10:37",
+        "notes": "Synced from Kaggle Leaderboard (Team: brights)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 38,
+        "team_id": 9,
+        "team_name": "Prediction Pirates",
+        "is_instructor": 0,
+        "score": 0.40613,
+        "kaggle_rank": 4475,
+        "recorded_at": "2026-11-03 15:10:37",
+        "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 37,
+        "team_id": 10,
+        "team_name": "BAIM Group",
+        "is_instructor": 0,
+        "score": 0.12493,
+        "kaggle_rank": 1407,
+        "recorded_at": "2026-11-03 15:10:37",
+        "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
+        "source": "kaggle_api (maydogdu)"
+      },
       {
         "id": 36,
         "team_id": 12,
@@ -427,8 +500,8 @@
   "teams": [
     {
       "id": 10,
-      "name": "BAIM330 Group",
-      "kaggle_name": "BAIM330 Group",
+      "name": "BAIM Group",
+      "kaggle_name": "BAIM Group",
       "members": "Jill, Juliany, Kyle",
       "is_instructor": 0,
       "created_at": "2026-10-27 15:15:16"

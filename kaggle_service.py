@@ -8,6 +8,7 @@ Supports:
 
 import os
 import io
+import re
 import csv
 import json
 import base64
@@ -121,12 +122,16 @@ def parse_csv_leaderboard_content(csv_text):
                 except ValueError:
                     continue
 
+        # Determine team members if available
+        team_members = row.get("teammemberusernames") or row.get("teammembers") or row.get("members") or ""
+
         if team_name and score_val is not None:
             entries.append({
                 "team_name": team_name,
                 "score": score_val,
                 "rank": rank_val,
-                "submission_count": sub_count
+                "submission_count": sub_count,
+                "team_members": team_members
             })
             
     return entries
@@ -248,18 +253,47 @@ def process_leaderboard_entries(entries, source="kaggle_api"):
         target_name = team["kaggle_name"].strip().lower()
         matched_entry = None
 
-        # Try exact match first
+        # 1. Try exact match first
         for entry in entries:
             cand_name = entry["team_name"].strip().lower()
             if cand_name == target_name:
                 matched_entry = entry
                 break
-                
-        # Try substring match if exact not found
+
+        # 2. Try normalized alphanumeric match (e.g. spaces/punctuation differences)
+        if not matched_entry:
+            target_norm = re.sub(r'[^a-z0-9]', '', target_name)
+            for entry in entries:
+                cand_norm = re.sub(r'[^a-z0-9]', '', entry["team_name"].lower())
+                if target_norm and cand_norm and cand_norm == target_norm:
+                    matched_entry = entry
+                    break
+
+        # 3. Try flexible match removing '330' (e.g. 'BAIM330 Group' vs 'BAIM Group')
+        if not matched_entry:
+            target_no330 = target_name.replace("330", "").strip()
+            for entry in entries:
+                cand_name = entry["team_name"].strip().lower()
+                cand_no330 = cand_name.replace("330", "").strip()
+                if target_no330 and cand_no330 and (target_no330 == cand_no330 or target_no330 == cand_name or cand_name == target_no330):
+                    matched_entry = entry
+                    break
+
+        # 4. Try substring match if exact not found
         if not matched_entry:
             for entry in entries:
                 cand_name = entry["team_name"].strip().lower()
-                if target_name in cand_name or cand_name in target_name:
+                if len(target_name) >= 4 and len(cand_name) >= 4:
+                    if target_name in cand_name or cand_name in target_name:
+                        matched_entry = entry
+                        break
+
+        # 5. Try team members username match fallback
+        if not matched_entry and team.get("members"):
+            member_tokens = [m.strip().lower() for m in re.split(r'[,;/ ]+', team["members"]) if len(m.strip()) >= 3]
+            for entry in entries:
+                entry_members = entry.get("team_members", "").lower()
+                if entry_members and any(token in entry_members for token in member_tokens):
                     matched_entry = entry
                     break
 
