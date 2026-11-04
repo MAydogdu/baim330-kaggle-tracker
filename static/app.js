@@ -501,8 +501,104 @@ function renderHeroChart(data) {
           ticks: { font: { size: 10 } }
         },
         y: {
+          reverse: true,
           grid: { color: 'rgba(226, 232, 240, 0.6)' },
           title: { display: true, text: 'Daily Best RMSE (Lower is Better)', font: { size: 10, weight: 'bold' } },
+          ticks: { font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderHistoryChart(data) {
+  const canvas = document.getElementById('historyChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  if (historyChartInstance) {
+    historyChartInstance.destroy();
+  }
+
+  const datasets = [];
+  let colorIdx = 0;
+
+  const activeSeries = (data.series || []).filter(s => s.points && s.points.length > 0);
+
+  activeSeries.forEach(item => {
+    const color = TEAM_COLORS[colorIdx % TEAM_COLORS.length];
+    colorIdx++;
+
+    datasets.push({
+      label: item.team_name,
+      data: item.points.map(p => ({
+        x: p.x,
+        y: p.y,
+        kaggle_rank: p.kaggle_rank,
+        notes: p.notes
+      })),
+      borderColor: color.border,
+      backgroundColor: color.border,
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+      tension: 0.25,
+      fill: false
+    });
+  });
+
+  historyChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            boxWidth: 8,
+            font: { size: 11, weight: 'bold' }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleFont: { size: 12, weight: 'bold' },
+          bodyFont: { size: 11 },
+          padding: 8,
+          cornerRadius: 6,
+          callbacks: {
+            label: function(context) {
+              const raw = context.raw;
+              return `${context.dataset.label}: ${Number(raw.y).toFixed(5)} RMSE`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              day: 'MMM d'
+            },
+            tooltipFormat: 'yyyy-MM-dd'
+          },
+          grid: { color: 'rgba(226, 232, 240, 0.6)' },
+          title: { display: true, text: 'Date', font: { size: 10, weight: 'bold' } },
+          ticks: { font: { size: 10 } }
+        },
+        y: {
+          reverse: true,
+          grid: { color: 'rgba(226, 232, 240, 0.6)' },
+          title: { display: true, text: 'RMSE Score (Lower is Better)', font: { size: 10, weight: 'bold' } },
           ticks: { font: { size: 10 } }
         }
       }
