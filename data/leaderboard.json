@@ -18,6 +18,17 @@
     "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
     "class_rank": 1
   },
+  "phase1": {
+    "deadline": "2026-11-12T08:00:00-05:00",
+    "deadline_text": "Thursday, Nov 12 at 8:00 AM EST",
+    "is_completed": false,
+    "winner_name": "BAIM Group",
+    "winner_id": 10,
+    "winner_score": 0.12493,
+    "winner_members": "Jill, Juliany, Kyle",
+    "winner_rank": 1471,
+    "finalized_at": null
+  },
   "standings": [
     {
       "team_id": 10,

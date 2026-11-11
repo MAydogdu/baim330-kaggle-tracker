@@ -101,6 +101,26 @@ body.obnoxious-mode header h1 {
   animation: obnoxious-rainbow-text 3s linear infinite;
 }
 
+/* Obnoxious Mode Phase 1 Banner */
+body.obnoxious-mode #phase1-banner {
+  background: linear-gradient(135deg, rgba(24, 0, 51, 0.95), rgba(59, 0, 102, 0.95)) !important;
+  border: 2px solid #00f0ff !important;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5), inset 0 0 15px rgba(255, 0, 127, 0.3) !important;
+  animation: obnoxious-card-pulse 2.5s ease-in-out infinite alternate !important;
+}
+
+body.obnoxious-mode #phase1-banner span.font-mono,
+body.obnoxious-mode #phase1-banner .bg-slate-800\/90 {
+  background: #000000 !important;
+  border-color: #39ff14 !important;
+  box-shadow: 0 0 10px #39ff14 !important;
+}
+
+body.obnoxious-mode #phase1-banner span.text-amber-400 {
+  color: #39ff14 !important;
+  text-shadow: 0 0 10px #39ff14 !important;
+}
+
 /* Obnoxious Mode Winner Spotlight Card */
 body.obnoxious-mode #winner-card {
   background: linear-gradient(135deg, #ff007f 0%, #7b00ff 50%, #00f0ff 100%) !important;

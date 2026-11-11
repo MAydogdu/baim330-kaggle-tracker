@@ -256,7 +256,8 @@ async function loadLeaderboard(showToastNotification = false) {
     }
 
     renderWinnerAndBenchmark(data);
-    renderLeaderboardTable(data.standings);
+    renderPhase1Banner(data.phase1, data.winner);
+    renderLeaderboardTable(data.standings, data.phase1);
 
     if (showToastNotification) {
       showToast('Leaderboard standings updated.', 'success');
@@ -266,8 +267,160 @@ async function loadLeaderboard(showToastNotification = false) {
   }
 }
 
+// -------------------------------------------------------------
+// PHASE 1 COUNTDOWN & WINNER ANNOUNCEMENT
+// -------------------------------------------------------------
+let phase1Timer = null;
+const PHASE1_DEADLINE = new Date("2026-11-12T08:00:00-05:00");
+
+function renderPhase1Banner(phase1, currentWinner) {
+  const banner = document.getElementById('phase1-banner');
+  if (!banner) return;
+
+  const now = new Date();
+  const isExpired = now >= PHASE1_DEADLINE;
+  const isCompleted = Boolean(phase1 && phase1.is_completed) || isExpired;
+
+  const bannerIcon = document.getElementById('phase1-banner-icon');
+  const tag = document.getElementById('phase1-tag');
+  const subtag = document.getElementById('phase1-subtag');
+  const headline = document.getElementById('phase1-headline');
+  const subtext = document.getElementById('phase1-subtext');
+  const actionArea = document.getElementById('phase1-action-area');
+
+  const winner = (phase1 && phase1.winner_name) 
+    ? {
+        name: phase1.winner_name,
+        members: phase1.winner_members,
+        best_score: phase1.winner_score,
+        kaggle_rank: phase1.winner_rank,
+        kaggle_name: phase1.winner_name
+      } 
+    : currentWinner;
+
+  if (isCompleted && winner) {
+    // 🏆 Celebratory Phase 1 Winner Announcement State
+    banner.className = "w-full rounded-2xl p-5 shadow-2xl border-2 border-amber-300 transition-all duration-300 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 animate-fadeIn";
+    
+    if (bannerIcon) {
+      bannerIcon.className = "w-14 h-14 rounded-2xl bg-slate-950 text-amber-400 flex items-center justify-center font-bold shadow-lg flex-shrink-0 text-2xl";
+      bannerIcon.innerHTML = `<i data-lucide="trophy" class="w-8 h-8 text-amber-400"></i>`;
+    }
+
+    if (tag) {
+      tag.className = "text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-400 px-3 py-1 rounded-full shadow flex items-center gap-1.5";
+      tag.innerHTML = `<i data-lucide="award" class="w-3.5 h-3.5"></i><span>Phase 1 Concluded — Official Champion Announced!</span>`;
+    }
+
+    if (subtag) {
+      subtag.className = "text-xs text-slate-900 font-bold";
+      subtag.textContent = "Locked at November 12, 8:00 AM EST";
+    }
+
+    if (headline) {
+      headline.className = "text-2xl sm:text-3xl font-black text-slate-950 mt-1.5 tracking-tight flex items-center gap-2";
+      headline.innerHTML = `<span>🏆 Phase 1 Winner: ${escapeHtml(winner.name)}!</span>`;
+    }
+
+    if (subtext) {
+      const scoreStr = winner.best_score ? Number(winner.best_score).toFixed(5) : '--';
+      const rankStr = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : '';
+      subtext.className = "text-xs sm:text-sm text-slate-900 font-semibold mt-1";
+      subtext.textContent = `Congratulations to ${winner.members || winner.name} for finishing in 1st Place with ${scoreStr} RMSE ${rankStr ? `(Kaggle Global Rank ${rankStr})` : ''}!`;
+    }
+
+    if (actionArea) {
+      actionArea.innerHTML = `
+        <div class="flex items-center space-x-2 bg-slate-950 text-amber-400 font-black px-4 py-2.5 rounded-xl shadow-lg border border-amber-300/40 text-sm">
+          <i data-lucide="crown" class="w-5 h-5 text-amber-400"></i>
+          <span>Phase 1 Champion</span>
+        </div>
+      `;
+    }
+
+    if (phase1Timer) {
+      clearInterval(phase1Timer);
+      phase1Timer = null;
+    }
+
+    // Auto-trigger finalize endpoint once if running locally and not yet recorded
+    if (!isStaticMode && phase1 && !phase1.is_completed && isExpired) {
+      fetch('/api/phase1/finalize', { method: 'POST' }).catch(() => {});
+    }
+
+  } else {
+    // ⏳ Active Countdown State (Before Nov 12 at 8:00 AM EST)
+    banner.className = "w-full rounded-2xl p-4 sm:p-5 shadow-lg border transition-all duration-300 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-amber-400/40 text-white";
+
+    if (bannerIcon) {
+      bannerIcon.className = "w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-md flex-shrink-0";
+      bannerIcon.innerHTML = `<i data-lucide="timer" class="w-6 h-6"></i>`;
+    }
+
+    if (tag) {
+      tag.className = "text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full shadow";
+      tag.textContent = "Phase 1 Sprint";
+    }
+
+    if (subtag) {
+      subtag.className = "text-xs text-amber-200/90 font-medium";
+      subtag.textContent = "Closes Thursday, Nov 12 at 8:00 AM EST";
+    }
+
+    if (headline) {
+      headline.className = "text-lg sm:text-xl font-black text-white mt-1 tracking-tight";
+      headline.textContent = "Phase 1 Concludes Tomorrow at 8:00 AM EST";
+    }
+
+    if (subtext) {
+      subtext.className = "text-xs text-slate-300 mt-0.5";
+      subtext.textContent = "Kaggle submissions freeze at 8:00 AM EST to determine the Phase 1 Champion.";
+    }
+
+    startPhase1Countdown();
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function startPhase1Countdown() {
+  if (phase1Timer) clearInterval(phase1Timer);
+
+  function update() {
+    const now = new Date();
+    const diff = PHASE1_DEADLINE.getTime() - now.getTime();
+
+    const hoursEl = document.getElementById('cd-hours');
+    const minsEl = document.getElementById('cd-mins');
+    const secsEl = document.getElementById('cd-secs');
+
+    if (diff <= 0) {
+      clearInterval(phase1Timer);
+      phase1Timer = null;
+      loadLeaderboard();
+      return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    if (minsEl) minsEl.textContent = String(mins).padStart(2, '0');
+    if (secsEl) secsEl.textContent = String(secs).padStart(2, '0');
+  }
+
+  update();
+  phase1Timer = setInterval(update, 1000);
+}
+
 function renderWinnerAndBenchmark(data) {
   const winner = data.winner;
+  const isPhase1Done = (data.phase1 && data.phase1.is_completed) || (new Date() >= PHASE1_DEADLINE);
+  const badgeText = document.getElementById('winner-card-badge-text');
+  if (badgeText) {
+    badgeText.textContent = isPhase1Done ? 'Phase 1 Champion' : 'Currently Leading BAIM 330';
+  }
 
   // Winner Spotlight Card
   const winnerNameEl = document.getElementById('winner-team-name');
@@ -303,9 +456,13 @@ function renderWinnerAndBenchmark(data) {
   if (window.lucide) lucide.createIcons();
 }
 
-function renderLeaderboardTable(standings) {
+function renderLeaderboardTable(standings, phase1) {
   const tbody = document.getElementById('leaderboard-tbody');
   if (!tbody) return;
+
+  const isPhase1Done = (phase1 && phase1.is_completed) || (new Date() >= PHASE1_DEADLINE);
+  const phase1WinnerId = phase1 ? phase1.winner_id : null;
+  const phase1WinnerName = phase1 ? phase1.winner_name : null;
 
   if (!standings || standings.length === 0) {
     tbody.innerHTML = `
@@ -320,6 +477,12 @@ function renderLeaderboardTable(standings) {
 
   let html = '';
   standings.forEach(team => {
+    const isWinnerOfPhase1 = isPhase1Done && !team.is_instructor && (
+      team.team_id === phase1WinnerId || 
+      team.name === phase1WinnerName || 
+      team.class_rank === 1
+    );
+
     // Rank Badge
     let rankBadge = '';
     if (team.is_instructor) {
@@ -365,11 +528,12 @@ function renderLeaderboardTable(standings) {
       : `<span class="text-slate-400 font-mono">&mdash;</span>`;
 
     html += `
-      <tr class="transition-colors hover:bg-slate-50 ${team.is_instructor ? 'bg-slate-50/60' : ''}">
+      <tr class="transition-colors hover:bg-slate-50 ${isWinnerOfPhase1 ? 'bg-amber-50/70 border-l-4 border-l-amber-500' : ''} ${team.is_instructor ? 'bg-slate-50/60' : ''}">
         <td class="py-4 px-4 text-center">${rankBadge}</td>
         <td class="py-4 px-4">
           <div class="font-bold text-slate-900 flex items-center space-x-2">
             <span>${escapeHtml(team.name)}</span>
+            ${isWinnerOfPhase1 ? '<span class="text-[10px] bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black px-2 py-0.5 rounded-full shadow-sm inline-flex items-center gap-1 border border-amber-400"><i data-lucide="trophy" class="w-3 h-3 text-slate-950"></i>Phase 1 Winner</span>' : ''}
             ${team.is_instructor ? '<span class="text-[10px] bg-slate-200 text-slate-700 font-semibold px-1.5 py-0.5 rounded">Instructor (Unranked)</span>' : ''}
           </div>
           ${team.members ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(team.members)}</div>` : ''}

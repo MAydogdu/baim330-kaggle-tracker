@@ -21,6 +21,7 @@ def export_to_json():
         "last_sync": leaderboard.get("last_sync"),
         "total_teams": leaderboard.get("total_teams"),
         "winner": leaderboard.get("winner"),
+        "phase1": leaderboard.get("phase1"),
         "standings": leaderboard.get("standings", []),
         "history": history,
         "teams": teams

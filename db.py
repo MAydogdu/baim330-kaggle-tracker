@@ -295,13 +295,79 @@ def get_leaderboard_data():
     all_ranked = student_with_score + student_without_score + instructor_teams
     conn.close()
 
+    phase1 = get_phase1_info(winner)
+
     return {
         "standings": all_ranked,
         "winner": winner,
+        "phase1": phase1,
         "competition_id": get_setting("competition_id", "house-prices-advanced-regression-techniques"),
         "total_teams": len(all_ranked),
         "last_sync": get_setting("last_sync_time", None)
     }
+
+def get_phase1_info(current_winner=None):
+    completed = get_setting("phase1_completed", "0") == "1"
+    deadline = "2026-11-12T08:00:00-05:00"
+    deadline_text = "Thursday, Nov 12 at 8:00 AM EST"
+    
+    winner_name = get_setting("phase1_winner_name", None)
+    winner_id = get_setting("phase1_winner_id", None)
+    winner_score = get_setting("phase1_winner_score", None)
+    winner_members = get_setting("phase1_winner_members", None)
+    winner_rank = get_setting("phase1_winner_rank", None)
+    finalized_at = get_setting("phase1_finalized_at", None)
+
+    if not winner_name and current_winner:
+        winner_name = current_winner["name"]
+        winner_id = current_winner["team_id"]
+        winner_score = current_winner["best_score"]
+        winner_members = current_winner.get("members", "")
+        winner_rank = current_winner.get("kaggle_rank", None)
+
+    return {
+        "deadline": deadline,
+        "deadline_text": deadline_text,
+        "is_completed": completed,
+        "winner_name": winner_name,
+        "winner_id": int(winner_id) if winner_id else None,
+        "winner_score": float(winner_score) if winner_score else None,
+        "winner_members": winner_members,
+        "winner_rank": int(winner_rank) if winner_rank else None,
+        "finalized_at": finalized_at
+    }
+
+def finalize_phase1_in_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM teams WHERE is_instructor = 0")
+    teams = [dict(row) for row in cursor.fetchall()]
+    
+    best_student_team = None
+    best_score = float('inf')
+    
+    for team in teams:
+        cursor.execute("SELECT MIN(score) as best_score, kaggle_rank FROM snapshots WHERE team_id = ? AND score IS NOT NULL", (team["id"],))
+        res = cursor.fetchone()
+        if res and res["best_score"] is not None and res["best_score"] < best_score:
+            best_score = res["best_score"]
+            best_student_team = team
+            best_student_team["best_score"] = res["best_score"]
+            best_student_team["kaggle_rank"] = res["kaggle_rank"]
+            
+    conn.close()
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if best_student_team:
+        set_setting("phase1_completed", "1")
+        set_setting("phase1_winner_id", str(best_student_team["id"]))
+        set_setting("phase1_winner_name", str(best_student_team["name"]))
+        set_setting("phase1_winner_score", str(best_student_team["best_score"]))
+        set_setting("phase1_winner_members", str(best_student_team.get("members", "")))
+        set_setting("phase1_winner_rank", str(best_student_team.get("kaggle_rank", "")))
+        set_setting("phase1_finalized_at", now_str)
+        
+    return get_phase1_info()
 
 def get_history_data():
     """

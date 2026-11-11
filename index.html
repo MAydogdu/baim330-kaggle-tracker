@@ -14,7 +14,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Custom Styling -->
-  <link rel="stylesheet" href="style.css?v=2.4">
+  <link rel="stylesheet" href="style.css?v=2.5">
   
   <script>
     tailwind.config = {
@@ -116,7 +116,48 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
     <!-- TAB 1: LEADERBOARD & STANDINGS (MAIN SCREEN) -->
-    <section id="tab-leaderboard" class="space-y-8 animate-fadeIn">
+    <section id="tab-leaderboard" class="space-y-6 animate-fadeIn">
+
+      <!-- PHASE 1 COUNTDOWN & WINNER ANNOUNCEMENT BANNER -->
+      <div id="phase1-banner" class="w-full rounded-2xl p-4 sm:p-5 shadow-lg border transition-all duration-300 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-amber-400/40 text-white">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center space-x-3.5">
+            <div id="phase1-banner-icon" class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-md flex-shrink-0">
+              <i data-lucide="timer" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span id="phase1-tag" class="text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full shadow">Phase 1 Sprint</span>
+                <span id="phase1-subtag" class="text-xs text-amber-200/90 font-medium">Closes Thursday, Nov 12 at 8:00 AM EST</span>
+              </div>
+              <h2 id="phase1-headline" class="text-lg sm:text-xl font-black text-white mt-1 tracking-tight">
+                Phase 1 Concludes Tomorrow at 8:00 AM EST
+              </h2>
+              <p id="phase1-subtext" class="text-xs text-slate-300 mt-0.5">
+                Kaggle submissions freeze at 8:00 AM EST to determine the Phase 1 Champion.
+              </p>
+            </div>
+          </div>
+          <div id="phase1-action-area" class="flex-shrink-0 flex items-center gap-3">
+            <div id="phase1-countdown" class="flex items-center space-x-2 font-mono">
+              <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center shadow-inner">
+                <span id="cd-hours" class="block text-xl font-black text-amber-400">--</span>
+                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-sans block">Hours</span>
+              </div>
+              <span class="text-amber-400 font-black text-lg">:</span>
+              <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center shadow-inner">
+                <span id="cd-mins" class="block text-xl font-black text-amber-400">--</span>
+                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-sans block">Mins</span>
+              </div>
+              <span class="text-amber-400 font-black text-lg">:</span>
+              <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center shadow-inner">
+                <span id="cd-secs" class="block text-xl font-black text-amber-400">--</span>
+                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-sans block">Secs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Winner Spotlight & Time Series Hero Row -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
@@ -128,7 +169,7 @@
             <div class="flex items-center justify-between mb-4">
               <span class="inline-flex items-center space-x-1.5 bg-slate-950 text-amber-400 text-xs uppercase tracking-wider font-extrabold px-3 py-1 rounded-full shadow">
                 <i data-lucide="crown" class="w-3.5 h-3.5"></i>
-                <span>Currently Leading BAIM 330</span>
+                <span id="winner-card-badge-text">Currently Leading BAIM 330</span>
               </span>
             </div>
 
@@ -637,6 +678,6 @@
   </footer>
 
   <!-- Application Logic -->
-  <script src="app.js?v=2.4"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>

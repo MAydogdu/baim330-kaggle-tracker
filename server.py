@@ -156,6 +156,15 @@ class RequestHandler(BaseHTTPRequestHandler):
             else:
                 return self.send_error_json(result.get("error", "Failed to fetch from Kaggle"))
 
+        # Finalize Phase 1 Endpoint
+        if path == "/api/phase1/finalize":
+            try:
+                import finalize_phase1
+                info = finalize_phase1.run_finalize(push_to_git=True)
+                return self.send_json({"success": True, "phase1": info})
+            except Exception as e:
+                return self.send_error_json(f"Error finalizing Phase 1: {str(e)}")
+
         # Admin Login
         if path == "/api/admin/login":
             body = self.read_json_body()
