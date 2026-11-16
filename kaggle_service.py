@@ -206,13 +206,122 @@ def fetch_kaggle_leaderboard_api(username, key, competition_id):
 
     return None, "Unknown error fetching Kaggle leaderboard"
 
+def fetch_kaggle_submissions_api(username, key, competition_id):
+    """
+    Fetches the authenticated team's submissions directly from Kaggle REST API:
+    https://www.kaggle.com/api/v1/competitions/submissions/list/{competition_id}
+    """
+    url = f"https://www.kaggle.com/api/v1/competitions/submissions/list/{competition_id}"
+    req = urllib.request.Request(url)
+    auth_str = f"{username}:{key}"
+    auth_bytes = auth_str.encode("utf-8")
+    auth_b64 = base64.b64encode(auth_bytes).decode("ascii")
+    req.add_header("Authorization", f"Basic {auth_b64}")
+    req.add_header("User-Agent", "BAIM330-KaggleTracker/1.0")
+
+    try:
+        with urllib.request.urlopen(req, timeout=25) as response:
+            text = response.read().decode("utf-8-sig", errors="replace")
+            data = json.loads(text)
+            return data, None
+    except Exception as e:
+        return None, f"Error fetching team submissions from Kaggle: {str(e)}"
+
+def filter_merged_team_submissions(submissions, exclude_files=None, max_age_days=20, exclude_users=None):
+    """
+    Filters team submissions according to competition and instructor rules:
+    - Excludes specific submission files (e.g., 'HousePrices_GradientBoosting_Submission.csv')
+    - Excludes submissions >= max_age_days old (default 20 days)
+    - Excludes instructor submissions (e.g., 'maydogdu')
+    - Excludes submissions with status error or missing scores
+    """
+    from datetime import timezone, timedelta
+    
+    if not submissions:
+        return []
+
+    if exclude_files is None:
+        exclude_files = ["HousePrices_GradientBoosting_Submission.csv"]
+    if exclude_users is None:
+        exclude_users = ["maydogdu"]
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max_age_days)
+
+    eligible = []
+    for s in submissions:
+        # Check status and score
+        score_val = s.get("publicScore") or s.get("publicScoreNullable")
+        if not score_val or str(score_val).strip() == "":
+            continue
+        try:
+            score = float(score_val)
+        except (ValueError, TypeError):
+            continue
+
+        file_name = s.get("fileName") or s.get("fileNameNullable") or ""
+        ref = str(s.get("ref", ""))
+        
+        # 1. Exclude specific files
+        if any(excl.lower() in file_name.lower() for excl in exclude_files) or ref == "58186093":
+            continue
+
+        # 2. Exclude instructor submissions
+        by_user = (s.get("submittedBy") or s.get("submittedByNullable") or "").strip().lower()
+        if by_user in [u.lower() for u in exclude_users]:
+            continue
+
+        # 3. Parse date and exclude >= max_age_days old
+        date_str = s.get("date") or ""
+        dt = None
+        for fmt in ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]:
+            try:
+                dt = datetime.strptime(date_str, fmt).replace(tzinfo=timezone.utc)
+                break
+            except Exception:
+                pass
+
+        if dt and dt < cutoff:
+            continue
+
+        eligible.append({
+            "ref": ref,
+            "fileName": file_name,
+            "score": score,
+            "submittedBy": by_user,
+            "date": str(dt) if dt else date_str,
+            "dt": dt
+        })
+
+    return eligible
+
+def find_rank_in_leaderboard(score, entries):
+    """
+    Finds the Kaggle leaderboard rank corresponding to a given RMSE score.
+    """
+    if not entries or score is None:
+        return None
+    valid_entries = [e for e in entries if e.get("score") is not None and e.get("rank") is not None]
+    if not valid_entries:
+        return None
+    
+    # 1. Try exact match
+    for e in valid_entries:
+        if abs(e["score"] - score) < 0.00005:
+            return e["rank"]
+
+    # 2. Find closest rank
+    closest = min(valid_entries, key=lambda e: abs(e["score"] - score))
+    return closest.get("rank")
+
 def sync_scores(competition_id=None):
     """
     Orchestrates updating the scores for all registered teams:
     1. Retrieves Kaggle credentials
     2. Downloads latest leaderboard
-    3. Matches each tracked team
-    4. Records new snapshots
+    3. Fetches authenticated team submissions (for merged student teams)
+    4. Matches each tracked team and applies exclusion filters
+    5. Records new snapshots
     """
     if not competition_id:
         competition_id = get_setting("competition_id", DEFAULT_COMPETITION)
@@ -234,9 +343,12 @@ def sync_scores(competition_id=None):
             "source": source
         }
 
-    return process_leaderboard_entries(leaderboard_entries, source=f"kaggle_api ({username})")
+    # Fetch team submissions for merged/authenticated team to handle custom exclusion rules
+    team_submissions, _ = fetch_kaggle_submissions_api(username, key, competition_id)
 
-def process_leaderboard_entries(entries, source="kaggle_api"):
+    return process_leaderboard_entries(leaderboard_entries, team_submissions=team_submissions, source=f"kaggle_api ({username})")
+
+def process_leaderboard_entries(entries, team_submissions=None, source="kaggle_api"):
     """
     Given a list of { team_name, score, rank }, matches registered teams
     and records snapshots.
@@ -247,18 +359,44 @@ def process_leaderboard_entries(entries, source="kaggle_api"):
     updated_teams = []
     unmatched_teams = []
 
+    # Pre-calculate eligible submissions for BAIM Group / merged student teams
+    merged_best_sub = None
+    merged_eligible_subs = []
+    if team_submissions:
+        merged_eligible_subs = filter_merged_team_submissions(
+            team_submissions,
+            exclude_files=["HousePrices_GradientBoosting_Submission.csv"],
+            max_age_days=20,
+            exclude_users=["maydogdu"]
+        )
+        if merged_eligible_subs:
+            merged_best_sub = min(merged_eligible_subs, key=lambda x: x["score"])
+
     # Map normalized Kaggle team names in leaderboard
     # Kaggle team names can have different capitalization
     for team in teams:
         target_name = team["kaggle_name"].strip().lower()
         matched_entry = None
 
+        # Special handling for merged student team 'BAIM Group':
+        # Derive score directly from eligible submissions of the merged Kaggle team
+        if ("baim" in target_name and not team.get("is_instructor")) and merged_best_sub:
+            rank = find_rank_in_leaderboard(merged_best_sub["score"], entries)
+            matched_entry = {
+                "team_name": "BAIM Group",
+                "score": merged_best_sub["score"],
+                "rank": rank,
+                "submission_count": len(merged_eligible_subs),
+                "notes": f"Best eligible submission: {merged_best_sub['fileName']} by {merged_best_sub['submittedBy']} ({merged_best_sub['score']} RMSE)"
+            }
+
         # 1. Try exact match first
-        for entry in entries:
-            cand_name = entry["team_name"].strip().lower()
-            if cand_name == target_name:
-                matched_entry = entry
-                break
+        if not matched_entry:
+            for entry in entries:
+                cand_name = entry["team_name"].strip().lower()
+                if cand_name == target_name:
+                    matched_entry = entry
+                    break
 
         # 2. Try normalized alphanumeric match (e.g. spaces/punctuation differences)
         if not matched_entry:
@@ -288,8 +426,8 @@ def process_leaderboard_entries(entries, source="kaggle_api"):
                         matched_entry = entry
                         break
 
-        # 5. Try team members username match fallback
-        if not matched_entry and team.get("members"):
+        # 5. Try team members username match fallback (for non-instructor teams)
+        if not matched_entry and team.get("members") and not team.get("is_instructor"):
             member_tokens = [m.strip().lower() for m in re.split(r'[,;/ ]+', team["members"]) if len(m.strip()) >= 3]
             for entry in entries:
                 entry_members = entry.get("team_members", "").lower()
@@ -298,12 +436,13 @@ def process_leaderboard_entries(entries, source="kaggle_api"):
                     break
 
         if matched_entry:
+            notes_str = matched_entry.get("notes") or f"Synced from Kaggle Leaderboard (Team: {matched_entry['team_name']})"
             record_snapshot(
                 team_id=team["id"],
                 score=matched_entry["score"],
                 kaggle_rank=matched_entry.get("rank"),
                 recorded_at=now_str,
-                notes=f"Synced from Kaggle Leaderboard (Team: {matched_entry['team_name']})",
+                notes=notes_str,
                 source=source,
                 submission_count=matched_entry.get("submission_count")
             )
