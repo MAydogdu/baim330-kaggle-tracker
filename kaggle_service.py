@@ -227,15 +227,16 @@ def fetch_kaggle_submissions_api(username, key, competition_id):
     except Exception as e:
         return None, f"Error fetching team submissions from Kaggle: {str(e)}"
 
-def filter_merged_team_submissions(submissions, exclude_files=None, max_age_days=20, exclude_users=None):
+def filter_merged_team_submissions(submissions, exclude_files=None, min_date=None, exclude_users=None, exclude_user_before=None):
     """
     Filters team submissions according to competition and instructor rules:
     - Excludes specific submission files (e.g., 'HousePrices_GradientBoosting_Submission.csv')
-    - Excludes submissions >= max_age_days old (default 20 days)
+    - Excludes submissions prior to min_date (default 2026-10-28 UTC, i.e., >=20 days old at merge)
     - Excludes instructor submissions (e.g., 'maydogdu')
+    - Excludes submissions from specific users prior to a cutoff (e.g., Juliany prior to merge)
     - Excludes submissions with status error or missing scores
     """
-    from datetime import timezone, timedelta
+    from datetime import timezone
     
     if not submissions:
         return []
@@ -244,9 +245,12 @@ def filter_merged_team_submissions(submissions, exclude_files=None, max_age_days
         exclude_files = ["HousePrices_GradientBoosting_Submission.csv"]
     if exclude_users is None:
         exclude_users = ["maydogdu"]
-
-    now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=max_age_days)
+    if min_date is None:
+        min_date = datetime(2026, 10, 28, 0, 0, 0, tzinfo=timezone.utc)
+    if exclude_user_before is None:
+        exclude_user_before = {
+            "julianybournigal": datetime(2026, 11, 16, 23, 0, 0, tzinfo=timezone.utc)
+        }
 
     eligible = []
     for s in submissions:
@@ -271,7 +275,7 @@ def filter_merged_team_submissions(submissions, exclude_files=None, max_age_days
         if by_user in [u.lower() for u in exclude_users]:
             continue
 
-        # 3. Parse date and exclude >= max_age_days old
+        # 3. Parse date
         date_str = s.get("date") or ""
         dt = None
         for fmt in ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"]:
@@ -281,7 +285,12 @@ def filter_merged_team_submissions(submissions, exclude_files=None, max_age_days
             except Exception:
                 pass
 
-        if dt and dt < cutoff:
+        # Exclude submissions older than min_date (>= 20 days old at merge)
+        if dt and dt < min_date:
+            continue
+
+        # Exclude pre-merge submissions for specified users (e.g. Juliany prior to merge)
+        if by_user in exclude_user_before and dt and dt <= exclude_user_before[by_user]:
             continue
 
         eligible.append({
@@ -363,12 +372,7 @@ def process_leaderboard_entries(entries, team_submissions=None, source="kaggle_a
     merged_best_sub = None
     merged_eligible_subs = []
     if team_submissions:
-        merged_eligible_subs = filter_merged_team_submissions(
-            team_submissions,
-            exclude_files=["HousePrices_GradientBoosting_Submission.csv"],
-            max_age_days=20,
-            exclude_users=["maydogdu"]
-        )
+        merged_eligible_subs = filter_merged_team_submissions(team_submissions)
         if merged_eligible_subs:
             merged_best_sub = min(merged_eligible_subs, key=lambda x: x["score"])
 

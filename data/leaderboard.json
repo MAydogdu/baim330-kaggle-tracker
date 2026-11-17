@@ -1,6 +1,6 @@
 {
   "competition_id": "house-prices-advanced-regression-techniques",
-  "last_sync": "2026-11-16 18:52:27",
+  "last_sync": "2026-11-16 19:04:38",
   "total_teams": 4,
   "winner": {
     "team_id": 10,
@@ -8,14 +8,14 @@
     "kaggle_name": "BAIM Group",
     "members": "Jill, Juliany, Kyle",
     "is_instructor": false,
-    "latest_score": 0.12493,
-    "best_score": 0.12493,
-    "kaggle_rank": 1563,
-    "last_updated": "2026-11-16 18:52:27",
-    "submission_count": 38,
-    "delta": 0.0,
-    "trend": "unchanged",
-    "notes": "Best eligible submission: submission_improved.csv by julianybournigal (0.12493 RMSE)",
+    "latest_score": 0.13052,
+    "best_score": 0.13052,
+    "kaggle_rank": 2372,
+    "last_updated": "2026-11-16 19:04:38",
+    "submission_count": 33,
+    "delta": -0.00573,
+    "trend": "improved",
+    "notes": "Best eligible submission: List table - Id 1 (20).csv by kyledegroff (0.13052 RMSE)",
     "class_rank": 1
   },
   "phase1": {
@@ -24,9 +24,9 @@
     "is_completed": false,
     "winner_name": "BAIM Group",
     "winner_id": 10,
-    "winner_score": 0.12493,
+    "winner_score": 0.13052,
     "winner_members": "Jill, Juliany, Kyle",
-    "winner_rank": 1563,
+    "winner_rank": 2372,
     "finalized_at": null
   },
   "standings": [
@@ -36,14 +36,14 @@
       "kaggle_name": "BAIM Group",
       "members": "Jill, Juliany, Kyle",
       "is_instructor": false,
-      "latest_score": 0.12493,
-      "best_score": 0.12493,
-      "kaggle_rank": 1563,
-      "last_updated": "2026-11-16 18:52:27",
-      "submission_count": 38,
-      "delta": 0.0,
-      "trend": "unchanged",
-      "notes": "Best eligible submission: submission_improved.csv by julianybournigal (0.12493 RMSE)",
+      "latest_score": 0.13052,
+      "best_score": 0.13052,
+      "kaggle_rank": 2372,
+      "last_updated": "2026-11-16 19:04:38",
+      "submission_count": 33,
+      "delta": -0.00573,
+      "trend": "improved",
+      "notes": "Best eligible submission: List table - Id 1 (20).csv by kyledegroff (0.13052 RMSE)",
       "class_rank": 1
     },
     {
@@ -55,7 +55,7 @@
       "latest_score": 0.14541,
       "best_score": 0.14541,
       "kaggle_rank": 3353,
-      "last_updated": "2026-11-16 18:52:27",
+      "last_updated": "2026-11-16 19:04:38",
       "submission_count": 14,
       "delta": 0.0,
       "trend": "unchanged",
@@ -71,7 +71,7 @@
       "latest_score": 0.1476,
       "best_score": 0.1476,
       "kaggle_rank": 3524,
-      "last_updated": "2026-11-16 18:52:27",
+      "last_updated": "2026-11-16 19:04:38",
       "submission_count": 7,
       "delta": 0.0,
       "trend": "unchanged",
@@ -87,10 +87,10 @@
       "latest_score": 0.12493,
       "best_score": 0.12493,
       "kaggle_rank": 1572,
-      "last_updated": "2026-11-16 18:52:27",
+      "last_updated": "2026-11-16 19:04:38",
       "submission_count": 50,
-      "delta": -0.00217,
-      "trend": "improved",
+      "delta": 0.0,
+      "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
       "class_rank": null
     }
@@ -126,22 +126,22 @@
         "points": [
           {
             "x": "2026-11-03",
-            "y": 0.12493,
+            "y": 0.13625,
             "kaggle_rank": 1407,
             "submissions_count": 1,
             "notes": "Best on 2026-11-03 (1 submissions)"
           },
           {
             "x": "2026-11-10",
-            "y": 0.12493,
+            "y": 0.13625,
             "kaggle_rank": 1471,
             "submissions_count": 2,
             "notes": "Best on 2026-11-10 (2 submissions)"
           },
           {
             "x": "2026-11-16",
-            "y": 0.12493,
-            "kaggle_rank": 1563,
+            "y": 0.13052,
+            "kaggle_rank": 2372,
             "submissions_count": 1,
             "notes": "Best on 2026-11-16 (1 submissions)"
           }
@@ -177,8 +177,8 @@
             "x": "2026-11-16",
             "y": 0.12493,
             "kaggle_rank": 1572,
-            "submissions_count": 1,
-            "notes": "Best on 2026-11-16 (1 submissions)"
+            "submissions_count": 2,
+            "notes": "Best on 2026-11-16 (2 submissions)"
           }
         ]
       },
@@ -212,8 +212,8 @@
             "x": "2026-11-16",
             "y": 0.1476,
             "kaggle_rank": 3524,
-            "submissions_count": 1,
-            "notes": "Best on 2026-11-16 (1 submissions)"
+            "submissions_count": 2,
+            "notes": "Best on 2026-11-16 (2 submissions)"
           }
         ]
       },
@@ -247,13 +247,57 @@
             "x": "2026-11-16",
             "y": 0.14541,
             "kaggle_rank": 3353,
-            "submissions_count": 1,
-            "notes": "Best on 2026-11-16 (1 submissions)"
+            "submissions_count": 2,
+            "notes": "Best on 2026-11-16 (2 submissions)"
           }
         ]
       }
     ],
     "snapshots": [
+      {
+        "id": 56,
+        "team_id": 12,
+        "team_name": "BAIM330murt",
+        "is_instructor": 1,
+        "score": 0.12493,
+        "kaggle_rank": 1572,
+        "recorded_at": "2026-11-16 19:04:38",
+        "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 55,
+        "team_id": 6,
+        "team_name": "brights",
+        "is_instructor": 0,
+        "score": 0.14541,
+        "kaggle_rank": 3353,
+        "recorded_at": "2026-11-16 19:04:38",
+        "notes": "Synced from Kaggle Leaderboard (Team: brights)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 54,
+        "team_id": 9,
+        "team_name": "Prediction Pirates",
+        "is_instructor": 0,
+        "score": 0.1476,
+        "kaggle_rank": 3524,
+        "recorded_at": "2026-11-16 19:04:38",
+        "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 53,
+        "team_id": 10,
+        "team_name": "BAIM Group",
+        "is_instructor": 0,
+        "score": 0.13052,
+        "kaggle_rank": 2372,
+        "recorded_at": "2026-11-16 19:04:38",
+        "notes": "Best eligible submission: List table - Id 1 (20).csv by kyledegroff (0.13052 RMSE)",
+        "source": "kaggle_api (maydogdu)"
+      },
       {
         "id": 52,
         "team_id": 12,
@@ -285,17 +329,6 @@
         "kaggle_rank": 3524,
         "recorded_at": "2026-11-16 18:52:27",
         "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
-        "source": "kaggle_api (maydogdu)"
-      },
-      {
-        "id": 49,
-        "team_id": 10,
-        "team_name": "BAIM Group",
-        "is_instructor": 0,
-        "score": 0.12493,
-        "kaggle_rank": 1563,
-        "recorded_at": "2026-11-16 18:52:27",
-        "notes": "Best eligible submission: submission_improved.csv by julianybournigal (0.12493 RMSE)",
         "source": "kaggle_api (maydogdu)"
       },
       {
@@ -336,10 +369,10 @@
         "team_id": 10,
         "team_name": "BAIM Group",
         "is_instructor": 0,
-        "score": 0.12493,
+        "score": 0.13625,
         "kaggle_rank": 1471,
         "recorded_at": "2026-11-10 14:42:42",
-        "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
+        "notes": "Recalculated excluding pre-merge Juliany submissions",
         "source": "kaggle_api (maydogdu)"
       },
       {
@@ -380,10 +413,10 @@
         "team_id": 10,
         "team_name": "BAIM Group",
         "is_instructor": 0,
-        "score": 0.12493,
+        "score": 0.13625,
         "kaggle_rank": 1471,
         "recorded_at": "2026-11-10 14:40:37",
-        "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
+        "notes": "Recalculated excluding pre-merge Juliany submissions",
         "source": "kaggle_api (maydogdu)"
       },
       {
@@ -424,10 +457,10 @@
         "team_id": 10,
         "team_name": "BAIM Group",
         "is_instructor": 0,
-        "score": 0.12493,
+        "score": 0.13625,
         "kaggle_rank": 1407,
         "recorded_at": "2026-11-03 15:10:37",
-        "notes": "Synced from Kaggle Leaderboard (Team: BAIM Group)",
+        "notes": "Recalculated excluding pre-merge Juliany submissions",
         "source": "kaggle_api (maydogdu)"
       },
       {
