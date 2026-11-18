@@ -156,14 +156,20 @@ class RequestHandler(BaseHTTPRequestHandler):
             else:
                 return self.send_error_json(result.get("error", "Failed to fetch from Kaggle"))
 
-        # Finalize Phase 1 Endpoint
-        if path == "/api/phase1/finalize":
+        # Finalize Due Phases Endpoint
+        if path in ("/api/phase1/finalize", "/api/phases/finalize"):
             try:
-                import finalize_phase1
-                info = finalize_phase1.run_finalize(push_to_git=True)
-                return self.send_json({"success": True, "phase1": info})
+                import finalize_phases
+                finalized = finalize_phases.check_and_finalize_due_phases(push_to_git=True)
+                lb = get_leaderboard_data()
+                return self.send_json({
+                    "success": True,
+                    "finalized": finalized,
+                    "phase1": lb.get("phase1"),
+                    "phases": lb.get("phases")
+                })
             except Exception as e:
-                return self.send_error_json(f"Error finalizing Phase 1: {str(e)}")
+                return self.send_error_json(f"Error finalizing phase: {str(e)}")
 
         # Admin Login
         if path == "/api/admin/login":
@@ -420,8 +426,21 @@ class RequestHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_error(500, f"Error reading file: {str(e)}")
 
+def _phase_watcher_loop():
+    import time
+    import finalize_phases
+    while True:
+        try:
+            finalize_phases.check_and_finalize_due_phases(push_to_git=True)
+        except Exception as e:
+            print(f"[Phase Watcher Error] {e}")
+        time.sleep(30)
+
 def run_server(port=8000, host="0.0.0.0"):
     init_db()
+    import threading
+    watcher = threading.Thread(target=_phase_watcher_loop, daemon=True)
+    watcher.start()
     server_address = (host, port)
     httpd = ThreadedHTTPServer(server_address, RequestHandler)
     print("=" * 65)

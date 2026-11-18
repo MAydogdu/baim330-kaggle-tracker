@@ -256,7 +256,7 @@ async function loadLeaderboard(showToastNotification = false) {
     }
 
     renderWinnerAndBenchmark(data);
-    renderPhase1Banner(data.phase1, data.winner);
+    renderPhasesBannerAndGrid(data.phases || (data.phase1 ? [data.phase1] : []), data.winner);
     renderLeaderboardTable(data.standings, data.phase1);
 
     if (showToastNotification) {
@@ -268,128 +268,220 @@ async function loadLeaderboard(showToastNotification = false) {
 }
 
 // -------------------------------------------------------------
-// PHASE 1 COUNTDOWN & WINNER ANNOUNCEMENT
+// MULTI-PHASE COUNTDOWN & WINNERS ANNOUNCEMENT
 // -------------------------------------------------------------
 let phase1Timer = null;
 const PHASE1_DEADLINE = new Date("2026-11-12T08:00:00-05:00");
+let _autoFinalizeTriggered = false;
 
-function renderPhase1Banner(phase1, currentWinner) {
+function renderPhasesBannerAndGrid(phases, currentWinner) {
   const banner = document.getElementById('phase1-banner');
-  if (!banner) return;
-
+  const grid = document.getElementById('phases-grid');
   const now = new Date();
-  const isExpired = now >= PHASE1_DEADLINE;
-  const isCompleted = Boolean(phase1 && phase1.is_completed) || isExpired;
 
-  const bannerIcon = document.getElementById('phase1-banner-icon');
-  const tag = document.getElementById('phase1-tag');
-  const subtag = document.getElementById('phase1-subtag');
-  const headline = document.getElementById('phase1-headline');
-  const subtext = document.getElementById('phase1-subtext');
-  const actionArea = document.getElementById('phase1-action-area');
+  const phaseList = Array.isArray(phases) && phases.length > 0 ? phases : [];
+  const activePhase = phaseList.find(p => !p.is_completed && new Date(p.deadline) > now);
 
-  const winner = (phase1 && phase1.winner_name) 
-    ? {
-        name: phase1.winner_name,
-        members: phase1.winner_members,
-        best_score: phase1.winner_score,
-        kaggle_rank: phase1.winner_rank,
-        kaggle_name: phase1.winner_name
-      } 
-    : currentWinner;
+  // Auto-trigger finalize endpoint if any past phase is not yet locked in DB
+  const hasDueUnfinalized = phaseList.some(p => !p.is_completed && new Date(p.deadline) <= now);
+  if (!isStaticMode && hasDueUnfinalized && !_autoFinalizeTriggered) {
+    _autoFinalizeTriggered = true;
+    fetch('/api/phases/finalize', { method: 'POST' })
+      .then(() => loadLeaderboard())
+      .catch(() => {});
+  }
 
-  if (isCompleted && winner) {
-    // 🏆 Celebratory Phase 1 Winner Announcement State
-    banner.className = "w-full rounded-2xl p-5 shadow-2xl border-2 border-amber-300 transition-all duration-300 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 animate-fadeIn";
-    
-    if (bannerIcon) {
-      bannerIcon.className = "w-14 h-14 rounded-2xl bg-slate-950 text-amber-400 flex items-center justify-center font-bold shadow-lg flex-shrink-0 text-2xl";
-      bannerIcon.innerHTML = `<i data-lucide="trophy" class="w-8 h-8 text-amber-400"></i>`;
+  if (banner) {
+    const bannerIcon = document.getElementById('phase1-banner-icon');
+    const tag = document.getElementById('phase1-tag');
+    const subtag = document.getElementById('phase1-subtag');
+    const headline = document.getElementById('phase1-headline');
+    const subtext = document.getElementById('phase1-subtext');
+    const actionArea = document.getElementById('phase1-action-area');
+
+    if (activePhase) {
+      // ⏳ Active Phase Countdown State
+      banner.className = "w-full rounded-2xl p-4 sm:p-5 shadow-lg border transition-all duration-300 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-amber-400/40 text-white";
+
+      if (bannerIcon) {
+        bannerIcon.className = "w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-md flex-shrink-0";
+        bannerIcon.innerHTML = `<i data-lucide="timer" class="w-6 h-6"></i>`;
+      }
+      if (tag) {
+        tag.className = "text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full shadow";
+        tag.textContent = `${activePhase.name} Sprint`;
+      }
+      if (subtag) {
+        subtag.className = "text-xs text-amber-200/90 font-medium";
+        subtag.textContent = `Closes ${activePhase.deadline_text}`;
+      }
+      if (headline) {
+        headline.className = "text-lg sm:text-xl font-black text-white mt-1 tracking-tight";
+        headline.textContent = `${activePhase.name} Concludes ${activePhase.short_date || activePhase.deadline_text}`;
+      }
+      if (subtext) {
+        subtext.className = "text-xs text-slate-300 mt-0.5";
+        subtext.textContent = `Official Kaggle snapshot will be captured at ${activePhase.short_date || activePhase.deadline_text} to crown the ${activePhase.name} Winner.`;
+      }
+      startPhaseCountdown(new Date(activePhase.deadline));
+    } else {
+      // 🏆 All Phases Concluded
+      const lastPhase = phaseList[phaseList.length - 1];
+      const winner = (lastPhase && lastPhase.winner_name)
+        ? {
+            name: lastPhase.winner_name,
+            members: lastPhase.winner_members,
+            best_score: lastPhase.winner_score,
+            kaggle_rank: lastPhase.winner_rank,
+          }
+        : currentWinner;
+
+      banner.className = "w-full rounded-2xl p-5 shadow-2xl border-2 border-amber-300 transition-all duration-300 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 animate-fadeIn";
+      if (bannerIcon) {
+        bannerIcon.className = "w-14 h-14 rounded-2xl bg-slate-950 text-amber-400 flex items-center justify-center font-bold shadow-lg flex-shrink-0 text-2xl";
+        bannerIcon.innerHTML = `<i data-lucide="trophy" class="w-8 h-8 text-amber-400"></i>`;
+      }
+      if (tag) {
+        tag.className = "text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-400 px-3 py-1 rounded-full shadow flex items-center gap-1.5";
+        tag.innerHTML = `<i data-lucide="award" class="w-3.5 h-3.5"></i><span>All Phases Concluded — Final Champion!</span>`;
+      }
+      if (subtag && lastPhase) {
+        subtag.className = "text-xs text-slate-900 font-bold";
+        subtag.textContent = `Locked at ${lastPhase.deadline_text}`;
+      }
+      if (headline && winner) {
+        headline.className = "text-2xl sm:text-3xl font-black text-slate-950 mt-1.5 tracking-tight flex items-center gap-2";
+        headline.innerHTML = `<span>🏆 Final Champion: ${escapeHtml(winner.name)}!</span>`;
+      }
+      if (subtext && winner) {
+        const scoreStr = winner.best_score ? Number(winner.best_score).toFixed(5) : '--';
+        const rankStr = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : '';
+        subtext.className = "text-xs sm:text-sm text-slate-900 font-semibold mt-1";
+        subtext.textContent = `Congratulations to ${winner.members || winner.name} for finishing in 1st Place with ${scoreStr} RMSE ${rankStr ? `(Kaggle Global Rank ${rankStr})` : ''}!`;
+      }
+      if (actionArea) {
+        actionArea.innerHTML = `
+          <div class="flex items-center space-x-2 bg-slate-950 text-amber-400 font-black px-4 py-2.5 rounded-xl shadow-lg border border-amber-300/40 text-sm">
+            <i data-lucide="crown" class="w-5 h-5 text-amber-400"></i>
+            <span>Grand Champion</span>
+          </div>
+        `;
+      }
+      if (phase1Timer) {
+        clearInterval(phase1Timer);
+        phase1Timer = null;
+      }
     }
+  }
 
-    if (tag) {
-      tag.className = "text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-400 px-3 py-1 rounded-full shadow flex items-center gap-1.5";
-      tag.innerHTML = `<i data-lucide="award" class="w-3.5 h-3.5"></i><span>Phase 1 Concluded — Official Champion Announced!</span>`;
-    }
+  // Render 4-Phase Winners Grid
+  if (grid && phaseList.length > 0) {
+    grid.innerHTML = phaseList.map(p => {
+      const deadlineDt = new Date(p.deadline);
+      const isDone = Boolean(p.is_completed) || (now >= deadlineDt && Boolean(p.winner_name));
+      const isActive = activePhase && activePhase.phase_number === p.phase_number;
 
-    if (subtag) {
-      subtag.className = "text-xs text-slate-900 font-bold";
-      subtag.textContent = "Locked at November 12, 8:00 AM EST";
-    }
-
-    if (headline) {
-      headline.className = "text-2xl sm:text-3xl font-black text-slate-950 mt-1.5 tracking-tight flex items-center gap-2";
-      headline.innerHTML = `<span>🏆 Phase 1 Winner: ${escapeHtml(winner.name)}!</span>`;
-    }
-
-    if (subtext) {
-      const scoreStr = winner.best_score ? Number(winner.best_score).toFixed(5) : '--';
-      const rankStr = winner.kaggle_rank ? `#${winner.kaggle_rank.toLocaleString()}` : '';
-      subtext.className = "text-xs sm:text-sm text-slate-900 font-semibold mt-1";
-      subtext.textContent = `Congratulations to ${winner.members || winner.name} for finishing in 1st Place with ${scoreStr} RMSE ${rankStr ? `(Kaggle Global Rank ${rankStr})` : ''}!`;
-    }
-
-    if (actionArea) {
-      actionArea.innerHTML = `
-        <div class="flex items-center space-x-2 bg-slate-950 text-amber-400 font-black px-4 py-2.5 rounded-xl shadow-lg border border-amber-300/40 text-sm">
-          <i data-lucide="crown" class="w-5 h-5 text-amber-400"></i>
-          <span>Phase 1 Champion</span>
-        </div>
-      `;
-    }
-
-    if (phase1Timer) {
-      clearInterval(phase1Timer);
-      phase1Timer = null;
-    }
-
-    // Auto-trigger finalize endpoint once if running locally and not yet recorded
-    if (!isStaticMode && phase1 && !phase1.is_completed && isExpired) {
-      fetch('/api/phase1/finalize', { method: 'POST' }).catch(() => {});
-    }
-
-  } else {
-    // ⏳ Active Countdown State (Before Nov 12 at 8:00 AM EST)
-    banner.className = "w-full rounded-2xl p-4 sm:p-5 shadow-lg border transition-all duration-300 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-amber-400/40 text-white";
-
-    if (bannerIcon) {
-      bannerIcon.className = "w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-md flex-shrink-0";
-      bannerIcon.innerHTML = `<i data-lucide="timer" class="w-6 h-6"></i>`;
-    }
-
-    if (tag) {
-      tag.className = "text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full shadow";
-      tag.textContent = "Phase 1 Sprint";
-    }
-
-    if (subtag) {
-      subtag.className = "text-xs text-amber-200/90 font-medium";
-      subtag.textContent = "Closes Thursday, Nov 12 at 8:00 AM EST";
-    }
-
-    if (headline) {
-      headline.className = "text-lg sm:text-xl font-black text-white mt-1 tracking-tight";
-      headline.textContent = "Phase 1 Concludes Tomorrow at 8:00 AM EST";
-    }
-
-    if (subtext) {
-      subtext.className = "text-xs text-slate-300 mt-0.5";
-      subtext.textContent = "Kaggle submissions freeze at 8:00 AM EST to determine the Phase 1 Champion.";
-    }
-
-    startPhase1Countdown();
+      if (isDone) {
+        const scoreStr = p.winner_score != null ? Number(p.winner_score).toFixed(5) : '--';
+        const subsStr = p.winner_submissions != null ? `${p.winner_submissions} submissions` : '-- submissions';
+        return `
+          <div class="rounded-xl p-4 border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50/70 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-[11px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">${escapeHtml(p.name)}</span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  <i data-lucide="check-circle-2" class="w-3 h-3"></i> Concluded
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 font-medium mb-2">${escapeHtml(p.short_date || p.deadline_text)}</p>
+              <div class="flex items-center gap-1.5 text-slate-900 font-black text-base leading-tight">
+                <span>🏆</span>
+                <span class="truncate">${escapeHtml(p.winner_name || '--')}</span>
+              </div>
+              ${p.winner_members ? `<p class="text-[11px] text-slate-600 mt-0.5 truncate">${escapeHtml(p.winner_members)}</p>` : ''}
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-amber-200/80 flex items-center justify-between text-xs">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-slate-500 block font-semibold">Best Score</span>
+                <span class="font-mono font-black text-slate-900">${scoreStr}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] uppercase tracking-wider text-slate-500 block font-semibold">Submissions</span>
+                <span class="font-bold text-slate-800">${subsStr}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (isActive) {
+        const leadName = currentWinner ? currentWinner.name : 'Pending';
+        const leadScore = currentWinner && currentWinner.best_score != null ? Number(currentWinner.best_score).toFixed(5) : '--';
+        const leadSubs = currentWinner && currentWinner.submission_count != null ? `${currentWinner.submission_count} submissions` : '-- submissions';
+        return `
+          <div class="rounded-xl p-4 border-2 border-indigo-400 bg-gradient-to-br from-indigo-50/70 to-slate-50 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-[11px] font-black uppercase tracking-wider bg-indigo-600 text-white px-2 py-0.5 rounded-full">${escapeHtml(p.name)}</span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">
+                  <i data-lucide="timer" class="w-3 h-3"></i> Active
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 font-medium mb-2">${escapeHtml(p.short_date || p.deadline_text)}</p>
+              <div class="text-[10px] uppercase tracking-wider text-indigo-600 font-bold">Currently Leading</div>
+              <div class="text-slate-900 font-extrabold text-sm leading-tight truncate mt-0.5">${escapeHtml(leadName)}</div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-indigo-200/70 flex items-center justify-between text-xs">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-slate-500 block font-semibold">Best Score</span>
+                <span class="font-mono font-bold text-slate-800">${leadScore}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] uppercase tracking-wider text-slate-500 block font-semibold">Submissions</span>
+                <span class="font-semibold text-slate-700">${leadSubs}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="rounded-xl p-4 border border-slate-200 bg-slate-50/70 flex flex-col justify-between opacity-90">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-[11px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">${escapeHtml(p.name)}</span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                  <i data-lucide="calendar" class="w-3 h-3"></i> Upcoming
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 font-medium mb-2">${escapeHtml(p.short_date || p.deadline_text)}</p>
+              <div class="text-slate-500 font-semibold text-sm leading-tight">Awaiting Deadline</div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-400">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider block font-semibold">Best Score</span>
+                <span class="font-mono font-bold">--</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] uppercase tracking-wider block font-semibold">Submissions</span>
+                <span class="font-semibold">--</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }).join('');
   }
 
   if (window.lucide) lucide.createIcons();
 }
 
-function startPhase1Countdown() {
+function startPhaseCountdown(targetDate) {
   if (phase1Timer) clearInterval(phase1Timer);
 
   function update() {
     const now = new Date();
-    const diff = PHASE1_DEADLINE.getTime() - now.getTime();
+    const diff = targetDate.getTime() - now.getTime();
 
+    const daysWrap = document.getElementById('cd-days-wrap');
+    const daysEl = document.getElementById('cd-days');
     const hoursEl = document.getElementById('cd-hours');
     const minsEl = document.getElementById('cd-mins');
     const secsEl = document.getElementById('cd-secs');
@@ -401,11 +493,21 @@ function startPhase1Countdown() {
       return;
     }
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const totalHours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-    if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    if (days > 0 && daysWrap && daysEl) {
+      daysWrap.classList.remove('hidden');
+      daysEl.textContent = String(days).padStart(2, '0');
+      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    } else {
+      if (daysWrap) daysWrap.classList.add('hidden');
+      if (hoursEl) hoursEl.textContent = String(totalHours).padStart(2, '0');
+    }
+
     if (minsEl) minsEl.textContent = String(mins).padStart(2, '0');
     if (secsEl) secsEl.textContent = String(secs).padStart(2, '0');
   }
@@ -416,10 +518,12 @@ function startPhase1Countdown() {
 
 function renderWinnerAndBenchmark(data) {
   const winner = data.winner;
-  const isPhase1Done = (data.phase1 && data.phase1.is_completed) || (new Date() >= PHASE1_DEADLINE);
+  const phases = data.phases || (data.phase1 ? [data.phase1] : []);
+  const now = new Date();
+  const hasActivePhase = phases.some(p => !p.is_completed && new Date(p.deadline) > now);
   const badgeText = document.getElementById('winner-card-badge-text');
   if (badgeText) {
-    badgeText.textContent = isPhase1Done ? 'Phase 1 Champion' : 'Currently Leading BAIM 330';
+    badgeText.textContent = hasActivePhase ? 'Currently Leading BAIM 330' : 'Grand Champion — BAIM 330';
   }
 
   // Winner Spotlight Card

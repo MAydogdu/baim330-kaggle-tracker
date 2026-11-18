@@ -140,6 +140,13 @@
           </div>
           <div id="phase1-action-area" class="flex-shrink-0 flex items-center gap-3">
             <div id="phase1-countdown" class="flex items-center space-x-2 font-mono">
+              <div id="cd-days-wrap" class="hidden flex items-center space-x-2">
+                <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center shadow-inner">
+                  <span id="cd-days" class="block text-xl font-black text-amber-400">--</span>
+                  <span class="text-[9px] uppercase tracking-wider text-slate-400 font-sans block">Days</span>
+                </div>
+                <span class="text-amber-400 font-black text-lg">:</span>
+              </div>
               <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center shadow-inner">
                 <span id="cd-hours" class="block text-xl font-black text-amber-400">--</span>
                 <span class="text-[9px] uppercase tracking-wider text-slate-400 font-sans block">Hours</span>
@@ -156,6 +163,24 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- COMPETITION PHASES & WINNERS GRID -->
+      <div id="phases-section" class="bg-white rounded-2xl p-4 sm:p-5 shadow-md border border-slate-200/80">
+        <div class="flex items-center justify-between mb-3.5">
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-100 text-amber-600">
+              <i data-lucide="flag" class="w-4 h-4"></i>
+            </span>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Competition Phases &amp; Winners</h3>
+              <p class="text-[11px] text-slate-500">Official snapshots captured at each phase deadline</p>
+            </div>
+          </div>
+        </div>
+        <div id="phases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <!-- Populated dynamically by app.js -->
         </div>
       </div>
 

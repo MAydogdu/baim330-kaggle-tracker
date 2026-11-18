@@ -22,6 +22,7 @@ def export_to_json():
         "total_teams": leaderboard.get("total_teams"),
         "winner": leaderboard.get("winner"),
         "phase1": leaderboard.get("phase1"),
+        "phases": leaderboard.get("phases", []),
         "standings": leaderboard.get("standings", []),
         "history": history,
         "teams": teams

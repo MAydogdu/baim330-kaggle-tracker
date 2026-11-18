@@ -295,79 +295,122 @@ def get_leaderboard_data():
     all_ranked = student_with_score + student_without_score + instructor_teams
     conn.close()
 
-    phase1 = get_phase1_info(winner)
+    phases = get_all_phases_info(winner)
+    phase1 = phases[0] if phases else get_phase1_info(winner)
 
     return {
         "standings": all_ranked,
         "winner": winner,
         "phase1": phase1,
+        "phases": phases,
         "competition_id": get_setting("competition_id", "house-prices-advanced-regression-techniques"),
         "total_teams": len(all_ranked),
         "last_sync": get_setting("last_sync_time", None)
     }
 
-def get_phase1_info(current_winner=None):
-    completed = get_setting("phase1_completed", "0") == "1"
-    deadline = "2026-11-12T08:00:00-05:00"
-    deadline_text = "Thursday, Nov 12 at 8:00 AM EST"
-    
-    winner_name = get_setting("phase1_winner_name", None)
-    winner_id = get_setting("phase1_winner_id", None)
-    winner_score = get_setting("phase1_winner_score", None)
-    winner_members = get_setting("phase1_winner_members", None)
-    winner_rank = get_setting("phase1_winner_rank", None)
-    finalized_at = get_setting("phase1_finalized_at", None)
+PHASES_CONFIG = [
+    {
+        "phase_number": 1,
+        "name": "Phase 1",
+        "deadline": "2026-11-12T08:00:00-05:00",
+        "deadline_text": "Thursday, Nov 12 at 8:00 AM EST",
+        "short_date": "Nov 12, 8:00 AM EST",
+    },
+    {
+        "phase_number": 2,
+        "name": "Phase 2",
+        "deadline": "2026-11-19T08:00:00-05:00",
+        "deadline_text": "Thursday, Nov 19 at 8:00 AM EST",
+        "short_date": "Nov 19, 8:00 AM EST",
+    },
+    {
+        "phase_number": 3,
+        "name": "Phase 3",
+        "deadline": "2026-12-03T08:00:00-05:00",
+        "deadline_text": "Thursday, Dec 3 at 8:00 AM EST",
+        "short_date": "Dec 3, 8:00 AM EST",
+    },
+    {
+        "phase_number": 4,
+        "name": "Phase 4",
+        "deadline": "2026-12-10T10:00:00-05:00",
+        "deadline_text": "Thursday, Dec 10 at 10:00 AM EST",
+        "short_date": "Dec 10, 10:00 AM EST",
+    },
+]
 
-    if not winner_name and current_winner:
+def get_phase_info(phase_num, current_winner=None):
+    cfg = next((p for p in PHASES_CONFIG if p["phase_number"] == phase_num), None)
+    if not cfg:
+        return None
+
+    prefix = f"phase{phase_num}"
+    completed = get_setting(f"{prefix}_completed", "0") == "1"
+
+    winner_name = get_setting(f"{prefix}_winner_name", None)
+    winner_id = get_setting(f"{prefix}_winner_id", None)
+    winner_score = get_setting(f"{prefix}_winner_score", None)
+    winner_members = get_setting(f"{prefix}_winner_members", None)
+    winner_rank = get_setting(f"{prefix}_winner_rank", None)
+    winner_submissions = get_setting(f"{prefix}_winner_submissions", None)
+    finalized_at = get_setting(f"{prefix}_finalized_at", None)
+
+    if phase_num == 1 and not winner_name and current_winner:
         winner_name = current_winner["name"]
         winner_id = current_winner["team_id"]
         winner_score = current_winner["best_score"]
         winner_members = current_winner.get("members", "")
         winner_rank = current_winner.get("kaggle_rank", None)
+        winner_submissions = current_winner.get("submission_count", None)
 
     return {
-        "deadline": deadline,
-        "deadline_text": deadline_text,
+        "phase_number": cfg["phase_number"],
+        "name": cfg["name"],
+        "deadline": cfg["deadline"],
+        "deadline_text": cfg["deadline_text"],
+        "short_date": cfg["short_date"],
         "is_completed": completed,
         "winner_name": winner_name,
         "winner_id": int(winner_id) if winner_id else None,
         "winner_score": float(winner_score) if winner_score else None,
         "winner_members": winner_members,
         "winner_rank": int(winner_rank) if winner_rank else None,
+        "winner_submissions": int(winner_submissions) if winner_submissions else None,
         "finalized_at": finalized_at
     }
 
-def finalize_phase1_in_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM teams WHERE is_instructor = 0")
-    teams = [dict(row) for row in cursor.fetchall()]
-    
-    best_student_team = None
-    best_score = float('inf')
-    
-    for team in teams:
-        cursor.execute("SELECT MIN(score) as best_score, kaggle_rank FROM snapshots WHERE team_id = ? AND score IS NOT NULL", (team["id"],))
-        res = cursor.fetchone()
-        if res and res["best_score"] is not None and res["best_score"] < best_score:
-            best_score = res["best_score"]
-            best_student_team = team
-            best_student_team["best_score"] = res["best_score"]
-            best_student_team["kaggle_rank"] = res["kaggle_rank"]
-            
-    conn.close()
+def get_all_phases_info(current_winner=None):
+    return [get_phase_info(p["phase_number"], current_winner) for p in PHASES_CONFIG]
+
+def get_phase1_info(current_winner=None):
+    return get_phase_info(1, current_winner)
+
+def finalize_phase_in_db(phase_num, override_winner=None):
+    """
+    Locks in the winner for the given phase number (1-4) using current standings
+    (or an explicit override_winner dict).
+    """
+    best_student_team = override_winner
+    if not best_student_team:
+        lb = get_leaderboard_data()
+        best_student_team = lb.get("winner")
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    prefix = f"phase{phase_num}"
     if best_student_team:
-        set_setting("phase1_completed", "1")
-        set_setting("phase1_winner_id", str(best_student_team["id"]))
-        set_setting("phase1_winner_name", str(best_student_team["name"]))
-        set_setting("phase1_winner_score", str(best_student_team["best_score"]))
-        set_setting("phase1_winner_members", str(best_student_team.get("members", "")))
-        set_setting("phase1_winner_rank", str(best_student_team.get("kaggle_rank", "")))
-        set_setting("phase1_finalized_at", now_str)
-        
-    return get_phase1_info()
+        set_setting(f"{prefix}_completed", "1")
+        set_setting(f"{prefix}_winner_id", str(best_student_team.get("team_id") or best_student_team.get("id") or ""))
+        set_setting(f"{prefix}_winner_name", str(best_student_team["name"]))
+        set_setting(f"{prefix}_winner_score", str(best_student_team["best_score"]))
+        set_setting(f"{prefix}_winner_members", str(best_student_team.get("members", "")))
+        set_setting(f"{prefix}_winner_rank", str(best_student_team.get("kaggle_rank") or ""))
+        set_setting(f"{prefix}_winner_submissions", str(best_student_team.get("submission_count") or ""))
+        set_setting(f"{prefix}_finalized_at", now_str)
+
+    return get_phase_info(phase_num)
+
+def finalize_phase1_in_db():
+    return finalize_phase_in_db(1)
 
 def get_history_data():
     """
