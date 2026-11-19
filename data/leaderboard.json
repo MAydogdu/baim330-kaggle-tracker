@@ -1,6 +1,6 @@
 {
   "competition_id": "house-prices-advanced-regression-techniques",
-  "last_sync": "2026-11-18 09:40:29",
+  "last_sync": "2026-11-19 08:23:06",
   "total_teams": 4,
   "winner": {
     "team_id": 10,
@@ -10,12 +10,12 @@
     "is_instructor": false,
     "latest_score": 0.13051,
     "best_score": 0.13051,
-    "kaggle_rank": 2424,
-    "last_updated": "2026-11-18 09:40:29",
-    "submission_count": 38,
-    "delta": -1e-05,
-    "trend": "improved",
-    "notes": "Best eligible submission: GB Middle Corrected.csv by kyledegroff (0.13051 RMSE)",
+    "kaggle_rank": 2441,
+    "last_updated": "2026-11-19 08:23:06",
+    "submission_count": 39,
+    "delta": 0.0,
+    "trend": "unchanged",
+    "notes": "Best eligible submission: List table - Id 1 (30).csv by kyledegroff (0.13051 RMSE)",
     "class_rank": 1
   },
   "phase1": {
@@ -55,14 +55,14 @@
       "deadline": "2026-11-19T08:00:00-05:00",
       "deadline_text": "Thursday, Nov 19 at 8:00 AM EST",
       "short_date": "Nov 19, 8:00 AM EST",
-      "is_completed": false,
-      "winner_name": null,
-      "winner_id": null,
-      "winner_score": null,
-      "winner_members": null,
-      "winner_rank": null,
-      "winner_submissions": null,
-      "finalized_at": null
+      "is_completed": true,
+      "winner_name": "BAIM Group",
+      "winner_id": 10,
+      "winner_score": 0.13051,
+      "winner_members": "Jill, Juliany, Kyle",
+      "winner_rank": 2441,
+      "winner_submissions": 39,
+      "finalized_at": "2026-11-19 08:23:06"
     },
     {
       "phase_number": 3,
@@ -104,13 +104,29 @@
       "is_instructor": false,
       "latest_score": 0.13051,
       "best_score": 0.13051,
-      "kaggle_rank": 2424,
-      "last_updated": "2026-11-18 09:40:29",
-      "submission_count": 38,
-      "delta": -1e-05,
-      "trend": "improved",
-      "notes": "Best eligible submission: GB Middle Corrected.csv by kyledegroff (0.13051 RMSE)",
+      "kaggle_rank": 2441,
+      "last_updated": "2026-11-19 08:23:06",
+      "submission_count": 39,
+      "delta": 0.0,
+      "trend": "unchanged",
+      "notes": "Best eligible submission: List table - Id 1 (30).csv by kyledegroff (0.13051 RMSE)",
       "class_rank": 1
+    },
+    {
+      "team_id": 9,
+      "name": "Prediction Pirates",
+      "kaggle_name": "Prediction Pirates",
+      "members": "Tommy and Dan",
+      "is_instructor": false,
+      "latest_score": 0.13657,
+      "best_score": 0.13657,
+      "kaggle_rank": 3054,
+      "last_updated": "2026-11-19 08:23:06",
+      "submission_count": 14,
+      "delta": -0.01103,
+      "trend": "improved",
+      "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
+      "class_rank": 2
     },
     {
       "team_id": 6,
@@ -120,28 +136,12 @@
       "is_instructor": false,
       "latest_score": 0.14541,
       "best_score": 0.14541,
-      "kaggle_rank": 3426,
-      "last_updated": "2026-11-18 09:40:29",
-      "submission_count": 15,
+      "kaggle_rank": 3455,
+      "last_updated": "2026-11-19 08:23:06",
+      "submission_count": 18,
       "delta": 0.0,
       "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: brights)",
-      "class_rank": 2
-    },
-    {
-      "team_id": 9,
-      "name": "Prediction Pirates",
-      "kaggle_name": "Prediction Pirates",
-      "members": "Tommy and Dan",
-      "is_instructor": false,
-      "latest_score": 0.1476,
-      "best_score": 0.1476,
-      "kaggle_rank": 3594,
-      "last_updated": "2026-11-18 09:40:29",
-      "submission_count": 7,
-      "delta": 0.0,
-      "trend": "unchanged",
-      "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
       "class_rank": 3
     },
     {
@@ -152,9 +152,9 @@
       "is_instructor": true,
       "latest_score": 0.12493,
       "best_score": 0.12493,
-      "kaggle_rank": 1608,
-      "last_updated": "2026-11-18 09:40:29",
-      "submission_count": 65,
+      "kaggle_rank": 1631,
+      "last_updated": "2026-11-19 08:23:06",
+      "submission_count": 68,
       "delta": 0.0,
       "trend": "unchanged",
       "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
@@ -217,6 +217,13 @@
             "kaggle_rank": 2424,
             "submissions_count": 1,
             "notes": "Best on 2026-11-18 (1 submissions)"
+          },
+          {
+            "x": "2026-11-19",
+            "y": 0.13051,
+            "kaggle_rank": 2441,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-19 (1 submissions)"
           }
         ]
       },
@@ -259,6 +266,13 @@
             "kaggle_rank": 1608,
             "submissions_count": 1,
             "notes": "Best on 2026-11-18 (1 submissions)"
+          },
+          {
+            "x": "2026-11-19",
+            "y": 0.12493,
+            "kaggle_rank": 1631,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-19 (1 submissions)"
           }
         ]
       },
@@ -301,6 +315,13 @@
             "kaggle_rank": 3594,
             "submissions_count": 1,
             "notes": "Best on 2026-11-18 (1 submissions)"
+          },
+          {
+            "x": "2026-11-19",
+            "y": 0.13657,
+            "kaggle_rank": 3054,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-19 (1 submissions)"
           }
         ]
       },
@@ -343,11 +364,62 @@
             "kaggle_rank": 3426,
             "submissions_count": 1,
             "notes": "Best on 2026-11-18 (1 submissions)"
+          },
+          {
+            "x": "2026-11-19",
+            "y": 0.14541,
+            "kaggle_rank": 3455,
+            "submissions_count": 1,
+            "notes": "Best on 2026-11-19 (1 submissions)"
           }
         ]
       }
     ],
     "snapshots": [
+      {
+        "id": 64,
+        "team_id": 12,
+        "team_name": "BAIM330murt",
+        "is_instructor": 1,
+        "score": 0.12493,
+        "kaggle_rank": 1631,
+        "recorded_at": "2026-11-19 08:23:06",
+        "notes": "Synced from Kaggle Leaderboard (Team: BAIM330murt)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 63,
+        "team_id": 6,
+        "team_name": "brights",
+        "is_instructor": 0,
+        "score": 0.14541,
+        "kaggle_rank": 3455,
+        "recorded_at": "2026-11-19 08:23:06",
+        "notes": "Synced from Kaggle Leaderboard (Team: brights)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 62,
+        "team_id": 9,
+        "team_name": "Prediction Pirates",
+        "is_instructor": 0,
+        "score": 0.13657,
+        "kaggle_rank": 3054,
+        "recorded_at": "2026-11-19 08:23:06",
+        "notes": "Synced from Kaggle Leaderboard (Team: Prediction Pirates)",
+        "source": "kaggle_api (maydogdu)"
+      },
+      {
+        "id": 61,
+        "team_id": 10,
+        "team_name": "BAIM Group",
+        "is_instructor": 0,
+        "score": 0.13051,
+        "kaggle_rank": 2441,
+        "recorded_at": "2026-11-19 08:23:06",
+        "notes": "Best eligible submission: List table - Id 1 (30).csv by kyledegroff (0.13051 RMSE)",
+        "source": "kaggle_api (maydogdu)"
+      },
       {
         "id": 60,
         "team_id": 12,
