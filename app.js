@@ -222,6 +222,8 @@ async function fetchStaticOrApi(endpoint) {
         last_sync: staticCache.last_sync,
         total_teams: staticCache.total_teams,
         winner: staticCache.winner,
+        phase1: staticCache.phase1,
+        phases: staticCache.phases,
         standings: staticCache.standings
       };
     } else if (endpoint === '/api/history') {
